@@ -119,7 +119,7 @@ class Morpion():
                 return 2
             return (0)
     
-    def action(self):
+    def action(self): #Liste les coups possible (Donc à réduire au morpion dans le morpion)
         actionsPossibles=[]
         for k in range(N):
             for l in range(N):
@@ -139,13 +139,12 @@ class Morpion():
     def Utility(self):
         list_eval = []
         for a in self.action():
-            list_eval.append([a,self.Evaluate(a)])
-        
+            list_eval.append([a,self.Evaluate(a)]) #Add la coord et sa note
         list_eval = sorted(list_eval, key = lambda val:val[1])
         shuf = [i for i in list_eval if i[1] == list_eval[0][1]]
         return shuf[random.randint(0,len(shuf)-1)][0]
 
-    def Evaluate(self,a):
+    def Evaluate(self,a): # Donne la note de la coord
         nplateau = [[self.plateau[i][j] for j in range(N)] for i in range(N)]
         morp2 = Morpion(nplateau,self.etat)
         morp2.plateau[a[0]][a[1]] = 'X' if self.etat == 1 else 'O'
@@ -157,9 +156,7 @@ class Morpion():
             if(morp2.win() == j2):
                 return 1
         return 2
-        
-
-
+    
 #%% Algo Minmax
 # Fonctionne pas
 def Max_Value(s):
