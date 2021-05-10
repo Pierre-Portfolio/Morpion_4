@@ -31,7 +31,7 @@ class Morpion():
     def finDePartie(self):
         for k in range(N):
             for l in range(N):
-                if self.plateau[k][l]==".":
+                if self.plateau[k][l]=='.':
                     return False
         return True
     
@@ -125,7 +125,7 @@ class Morpion():
         coups = [];
         for i in range(N):
             for j in range(N):
-                if(self.plateau()[i][j] == '.'):
+                if(self.plateau[i][j] == '.'):
                    coups.append((i,j))
         return coups
     
@@ -145,8 +145,6 @@ class Morpion():
             return True
         return False
     
-    
-    '''
     def Utility(self):
         if(self.Terminal_Test()):
             win = self.win()
@@ -156,11 +154,10 @@ class Morpion():
                 return -1
             else:
                 return -1000
-        else:
-            
-        return 0
+        else:  
+            return 0
     
-    
+    '''
     
     def action(self): #Liste les coups possible (Donc à réduire au morpion dans le morpion)
         actionsPossibles=[]
@@ -203,38 +200,38 @@ class Morpion():
     
 #%% Algo Minmax
             
-# Fonctionne pas
-'''
-def Max_Value(s):
-    if(s.win() != 0):
-        return s.Utility()
-    else:
-        v = -np.inf
-        for a in s.action():
-            v = max(v,Min_Value(s.Result(a[0],a[1])))
-        return v
-    
-def Min_Value(s):
-    if(s.win() != 0):
-        return s.Utility()
-    else:
-        v = np.inf
-        for a in s.action():
-            v = min(v,Max_Value(s.Result(a)))
-        return v
-
-def MinMax_Decision(s):
+def MinMax_Decision(morpion):
+    nplateau = [['.' for i in range(N)] for j in range(N)]
+    for i in range(N):
+        for j in range(N):
+            nplateau[i][j] = morpion.plateau[i][j]
+    morp = Morpion(morpion.numJoueur,nplateau,morpion.etat)
     la= []
-    for a in s.action():
-        la.append(a,Min_Value(s.Result(a)))
+    for a in morp.Actions():
+        la.append((a,Min_Value(morp.Result(a))))
     la = sorted(la, key = lambda val:val[1])
     return la[0][0]
-'''
+
+def Min_Value(morpion):
+    if(morpion.Terminal_Test()):
+        return morpion.Utility()
+    score_min = 100000
+    for a in morpion.Actions():
+        score_min = min(score_min,Max_Value(morpion.Result(a)))
+    return score_min
+
+def Max_Value(morpion):
+    if(morpion.Terminal_Test()):
+        return morpion.Utility()
+    score_max = -100000
+    for a in morpion.Actions():
+        score_max = max(score_max,Min_Value(morpion.Result(a)))
+    return score_max
 
 def RepresentsInt(s):
     try: 
         s = int(s)
-        if(s<=0):
+        if(s<0):
             return False
         return True
     except ValueError:
@@ -244,9 +241,14 @@ def Partie():
     numjoueur = input("Numero de joueurs ?\n") #correspond a notre ia
     m = Morpion(int(numjoueur))
     while(m.win() == 0):
-        if(m.etat == numjoueur):
-            print("C'est a mon TOUR DE JOUER MAINTENANT")
-            return 0
+        m.Afficher()
+        if(m.etat == m.numJoueur):
+            print("************************\n*    Au tour de l'ia   *\n************************")
+            print("Début du MinMax")
+            val = MinMax_Decision(m)
+            print(f"Valeur a jouer : {val}")
+            m.Result(val)
+            print(f"{m.win()}")
         else:
             i = input("Valeur du i adverse: \n")
             j = input("Valeur du j adverse: \n")
@@ -254,13 +256,12 @@ def Partie():
                 print("Erreur dans la saisie, veuillez recommencer\n")
                 i = input("Valeur du i adverse: \n")
                 j = input("Valeur du j adverse: \n")
-            
             i = int(i)
             j = int(j)
             m = m.Result((i,j))
-            print("etat : ",m.etat)
-                
-            
+        valWin = m.win()
+        winner = "Null" if valWin == 0 else "J1" if valWin == 1 else "J2"
+        print(f"Fin de partie ! Gagnant : {winner}")
                 
     
 
