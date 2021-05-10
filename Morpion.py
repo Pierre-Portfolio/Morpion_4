@@ -140,6 +140,13 @@ class Morpion():
             self.etat = (1 if self.etat == 2  else 2)
         return self
     
+    def UnResult(self,a,etatBase):
+        i = a[0]
+        j = a[1]
+        self.plateau[i][j] = '.'
+        self.etat = etatBase
+        return self
+    
     def Terminal_Test(self):
         if(self.win() != 0) :
             return True
@@ -151,7 +158,7 @@ class Morpion():
             if(win == self.numJoueur):
                 return 1000
             elif(win == -1):
-                return -1
+                return 0
             else:
                 return -1000
         else:  
@@ -207,8 +214,10 @@ def MinMax_Decision(morpion):
             nplateau[i][j] = morpion.plateau[i][j]
     morp = Morpion(morpion.numJoueur,nplateau,morpion.etat)
     la= []
+    etatBase = morp.etat
     for a in morp.Actions():
         la.append((a,Min_Value(morp.Result(a))))
+        morp.UnResult(a, etatBase)
     la = sorted(la, key = lambda val:val[1])
     return la[0][0]
 
@@ -216,39 +225,48 @@ def Min_Value(morpion):
     if(morpion.Terminal_Test()):
         return morpion.Utility()
     score_min = 100000
+    etatBase = morpion.etat
     for a in morpion.Actions():
         score_min = min(score_min,Max_Value(morpion.Result(a)))
+        morpion.UnResult(a, etatBase)
     return score_min
 
 def Max_Value(morpion):
     if(morpion.Terminal_Test()):
         return morpion.Utility()
     score_max = -100000
+    etatBase = morpion.etat
     for a in morpion.Actions():
         score_max = max(score_max,Min_Value(morpion.Result(a)))
+        morpion.UnResult(a, etatBase)
     return score_max
 
 def RepresentsInt(s):
     try: 
         s = int(s)
-        if(s<0):
+        if(s<0 or s >= 12):
             return False
         return True
     except ValueError:
         return False
 
 def Partie():
+    nbCoups = 0
     numjoueur = input("Numero de joueurs ?\n") #correspond a notre ia
     m = Morpion(int(numjoueur))
     while(m.win() == 0):
         m.Afficher()
         if(m.etat == m.numJoueur):
-            print("************************\n*    Au tour de l'ia   *\n************************")
-            print("Début du MinMax")
-            val = MinMax_Decision(m)
-            print(f"Valeur a jouer : {val}")
-            m.Result(val)
-            print(f"{m.win()}")
+            if(nbCoups == 0):
+                print(f"On joue au centre (6,6)");
+                m.Result((6,6))
+            else:
+                print("************************\n*    Au tour de l'ia   *\n************************")
+                print("Début du MinMax")
+                val = MinMax_Decision(m)
+                print(f"Valeur a jouer : {val}")
+                m.Result(val)
+                print(f"{m.win()}")
         else:
             i = input("Valeur du i adverse: \n")
             j = input("Valeur du j adverse: \n")
@@ -259,22 +277,13 @@ def Partie():
             i = int(i)
             j = int(j)
             m = m.Result((i,j))
-        valWin = m.win()
-        winner = "Null" if valWin == 0 else "J1" if valWin == 1 else "J2"
-        print(f"Fin de partie ! Gagnant : {winner}")
+        nbCoups += 1
+    valWin = m.win()
+    winner = "Null" if valWin == 0 else "J1" if valWin == 1 else "J2"
+    print(f"Fin de partie ! Gagnant : {winner}")
                 
     
 
 #%% Zone Main
 if __name__ == "__main__":
     Partie()
-    """
-    morp = Morpion()
-    while(morp.win() == 0):
-        a = morp.Utility()
-        morp.Result(a[0],a[1])                
-        morp.Afficher()
-        print('\n')
-        time.sleep(1)
-    print('j1' if morp.win() == 1 else 'j2' if morp.win() == -1 else 'No win')
-    """
