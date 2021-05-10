@@ -26,6 +26,7 @@ class Morpion():
             for j in range(N):
                 s += ' '+self.plateau[i][j]
             print(s)
+    
     def finiDeJouer(self):
         for k in range(N):
             for l in range(N):
@@ -115,10 +116,40 @@ class Morpion():
         else :
             if res == 'X':
                 return (1)
-            elif (self.finiDeJouer()):
+            elif (self.finiDeJouer()): #MatchNull
                 return 2
             return (0)
+        
+    def Actions(self):
+        coups = [];
+        for i in range(N):
+            for j in range(N):
+                if(self.plateau()[i][j] == '.'):
+                   coups.append((i,j))
+        return coups
     
+    def Result(self,a):
+        i = a[0]
+        j = a[1]
+        if(self.plateau[i][j] == '.'):
+            if(self.etat  == 1):
+                self.plateau[i][j] = 'X'
+            else:
+                self.plateau[i][j] = 'O'
+            self.etat = (1 if self.etat == -1  else -1)
+        return self
+    
+    def Terminal_Test(self):
+        if(self.win() != 0) :
+            return True
+        return False
+    
+    def Utility(self):
+        if(self.Terminal_Test()):
+            if(self.win() == self.etat()):
+                return 0
+        return 0
+    '''
     def action(self): #Liste les coups possible (Donc à réduire au morpion dans le morpion)
         actionsPossibles=[]
         for k in range(N):
@@ -156,9 +187,12 @@ class Morpion():
             if(morp2.win() == j2):
                 return 1
         return 2
+    '''
     
 #%% Algo Minmax
+            
 # Fonctionne pas
+'''
 def Max_Value(s):
     if(s.win() != 0):
         return s.Utility()
@@ -183,6 +217,7 @@ def MinMax_Decision(s):
         la.append(a,Min_Value(s.Result(a)))
     la = sorted(la, key = lambda val:val[1])
     return la[0][0]
+'''
 #%% Zone Main
 if __name__ == "__main__":
     morp = Morpion()
