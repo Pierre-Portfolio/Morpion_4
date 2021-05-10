@@ -11,7 +11,7 @@ import random
 N = 12
 
 class Morpion():
-    def __init__(self, plateau=None, etat = None):
+    def __init__(self, numJoueur = 1,plateau=None, etat = None):
         if( plateau != None):
             self.plateau = plateau
         else:
@@ -20,6 +20,7 @@ class Morpion():
             self.etat = etat
         else:
             self.etat = 1
+        self.numJoueur = numJoueur
     def Afficher(self):
         for i in range(N):
             s = ''
@@ -27,7 +28,7 @@ class Morpion():
                 s += ' '+self.plateau[i][j]
             print(s)
     
-    def finiDeJouer(self):
+    def finDePartie(self):
         for k in range(N):
             for l in range(N):
                 if self.plateau[k][l]==".":
@@ -112,12 +113,12 @@ class Morpion():
             if res != '.':
                 break;  
         if ( res == 'O'):
-            return ( -1)
+            return ( 2)
         else :
             if res == 'X':
                 return (1)
-            elif (self.finiDeJouer()): #MatchNull
-                return 2
+            elif (self.finDePartie()): #MatchNull
+                return -1
             return (0)
         
     def Actions(self):
@@ -136,7 +137,7 @@ class Morpion():
                 self.plateau[i][j] = 'X'
             else:
                 self.plateau[i][j] = 'O'
-            self.etat = (1 if self.etat == -1  else -1)
+            self.etat = (1 if self.etat == 2  else 2)
         return self
     
     def Terminal_Test(self):
@@ -144,12 +145,23 @@ class Morpion():
             return True
         return False
     
+    
+    '''
     def Utility(self):
         if(self.Terminal_Test()):
-            if(self.win() == self.etat()):
-                return 0
+            win = self.win()
+            if(win == self.numJoueur):
+                return 1000
+            elif(win == -1):
+                return -1
+            else:
+                return -1000
+        else:
+            
         return 0
-    '''
+    
+    
+    
     def action(self): #Liste les coups possible (Donc à réduire au morpion dans le morpion)
         actionsPossibles=[]
         for k in range(N):
@@ -218,8 +230,44 @@ def MinMax_Decision(s):
     la = sorted(la, key = lambda val:val[1])
     return la[0][0]
 '''
+
+def RepresentsInt(s):
+    try: 
+        s = int(s)
+        if(s<=0):
+            return False
+        return True
+    except ValueError:
+        return False
+
+def Partie():
+    numjoueur = input("Numero de joueurs ?\n") #correspond a notre ia
+    m = Morpion(int(numjoueur))
+    while(m.win() == 0):
+        if(m.etat == numjoueur):
+            print("C'est a mon TOUR DE JOUER MAINTENANT")
+            return 0
+        else:
+            i = input("Valeur du i adverse: \n")
+            j = input("Valeur du j adverse: \n")
+            while(not(RepresentsInt(i)) or not(RepresentsInt(j))):
+                print("Erreur dans la saisie, veuillez recommencer\n")
+                i = input("Valeur du i adverse: \n")
+                j = input("Valeur du j adverse: \n")
+            
+            i = int(i)
+            j = int(j)
+            m = m.Result((i,j))
+            print("etat : ",m.etat)
+                
+            
+                
+    
+
 #%% Zone Main
 if __name__ == "__main__":
+    Partie()
+    """
     morp = Morpion()
     while(morp.win() == 0):
         a = morp.Utility()
@@ -228,3 +276,4 @@ if __name__ == "__main__":
         print('\n')
         time.sleep(1)
     print('j1' if morp.win() == 1 else 'j2' if morp.win() == -1 else 'No win')
+    """
