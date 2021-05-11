@@ -9,7 +9,7 @@ import time
 import random
 
 N = 12
-
+Prof= 2
 class Morpion():
     def __init__(self, numJoueur = 1,plateau=None, etat = None):
         if( plateau != None):
@@ -152,58 +152,27 @@ class Morpion():
             return True
         return False
     
-    def Utility(self):
+    def ComptPions(self,val):
+        res = 0
+        for i in range(N):
+            for j in range(N):
+                if((val ==  1 and self.plateau[i][j]=='X') or (val ==  2 and self.plateau[i][j]=='O')):
+                    res += 1
+        return res
+    
+    def Utility(self,a):
         if(self.Terminal_Test()):
             win = self.win()
             if(win == self.numJoueur):
-                return 1000
+                return 1000 - self.ComptPions(self.numJoueur)
             elif(win == -1):
                 return 0
             else:
-                return -1000
-        else:  
-            return 0
-    
-    '''
-    
-    def action(self): #Liste les coups possible (Donc à réduire au morpion dans le morpion)
-        actionsPossibles=[]
-        for k in range(N):
-            for l in range(N):
-                if self.plateau[k][l]==".":
-                    actionsPossibles.append([k,l])
-        return actionsPossibles
-    
-    def Result(self,i,j):
-        if(self.plateau[i][j] == '.'):
-            if(self.etat  == 1):
-                self.plateau[i][j] = 'X'
-            else:
-                self.plateau[i][j] = 'O'
-            self.etat = (1 if self.etat == -1  else -1)
-        return self
-            
-    def Utility(self):
-        list_eval = []
-        for a in self.action():
-            list_eval.append([a,self.Evaluate(a)]) #Add la coord et sa note
-        list_eval = sorted(list_eval, key = lambda val:val[1])
-        shuf = [i for i in list_eval if i[1] == list_eval[0][1]]
-        return shuf[random.randint(0,len(shuf)-1)][0]
-
-    def Evaluate(self,a): # Donne la note de la coord
-        nplateau = [[self.plateau[i][j] for j in range(N)] for i in range(N)]
-        morp2 = Morpion(nplateau,self.etat)
-        morp2.plateau[a[0]][a[1]] = 'X' if self.etat == 1 else 'O'
-        j2 = -1 if morp2.etat == 1 else 1
-        if(morp2.win() == self.etat):
-            return 0
+                return -1000 + self.ComptPions(1 if self.numJoueur == 2 else 2)
         else:
-            morp2.plateau[a[0]][a[1]] = 'X' if j2 == 1 else 'O'
-            if(morp2.win() == j2):
-                return 1
-        return 2
-    '''
+            #Faire isTrio : donne un score * (1/self.numJoueur) puis ifbloqueDuo or bloqueTrioSimple: donne un score (l'idée c'est gagne > bloqueTrioSimple (pas de possiblité de win des deux cotés) > trio > BloqueDuo (si numJoueur == 2) > duo > BloqueDuo (si numJoueur == 1))
+            #Si isTrio + bloque score * 10
+            return 0
     
 #%% Algo Minmax
             
@@ -216,30 +185,33 @@ def MinMax_Decision(morpion):
     la= []
     etatBase = morp.etat
     for a in morp.Actions():
-        la.append((a,Min_Value(morp.Result(a))))
+        la.append((a,Max_Value(morp.Result(a),a,Prof)))
         morp.UnResult(a, etatBase)
-    la = sorted(la, key = lambda val:val[1])
+    la = sorted(la, key = lambda val:val[1], reverse = True)
     return la[0][0]
 
-def Min_Value(morpion):
-    if(morpion.Terminal_Test()):
-        return morpion.Utility()
+def Min_Value(morpion,a, profondeur = 0):
+    if(morpion.Terminal_Test() or profondeur == 0):
+        return morpion.Utility(a)
     score_min = 100000
     etatBase = morpion.etat
+    profondeur -= 1
     for a in morpion.Actions():
-        score_min = min(score_min,Max_Value(morpion.Result(a)))
+        score_min = min(score_min,Max_Value(morpion.Result(a),a,profondeur))
         morpion.UnResult(a, etatBase)
     return score_min
 
-def Max_Value(morpion):
-    if(morpion.Terminal_Test()):
-        return morpion.Utility()
+def Max_Value(morpion, a, profondeur = 0):
+    if(morpion.Terminal_Test() or profondeur == 0):
+        return morpion.Utility(a)
     score_max = -100000
     etatBase = morpion.etat
+    profondeur -= 1
     for a in morpion.Actions():
-        score_max = max(score_max,Min_Value(morpion.Result(a)))
+        score_max = max(score_max,Min_Value(morpion.Result(a),a,profondeur))
         morpion.UnResult(a, etatBase)
     return score_max
+
 
 def RepresentsInt(s):
     try: 
@@ -258,13 +230,13 @@ def Partie():
         m.Afficher()
         if(m.etat == m.numJoueur):
             if(nbCoups == 0):
-                print(f"On joue au centre (6,6)");
-                m.Result((6,6))
+                print("On joue au centre (6,6)");
+                m.Result((5,5))
             else:
                 print("************************\n*    Au tour de l'ia   *\n************************")
                 print("Début du MinMax")
                 val = MinMax_Decision(m)
-                print(f"Valeur a jouer : {val}")
+                print(f"Valeur a jouer : {val[0]+1}{val[1]+1}")
                 m.Result(val)
                 print(f"{m.win()}")
         else:
