@@ -190,23 +190,37 @@ class Morpion():
             bloqueD, nbD = self.bloqueDuo(x, y)
             score = nbD + nbT
             if bloqueT:
-                score += 30 - self.ComptPions(self.numJoueur)
+                score += 60 - self.ComptPions(self.numJoueur)
             if self.isTrio(x, y):
-                score += 20 - self.ComptPions(self.numJoueur)
+                score += 40 - self.ComptPions(self.numJoueur)
                 if bloqueT: #Si isTrio + bloque score * 10
                     score= score * 10
                 elif bloqueD:
                     score= score * 5
             if bloqueD:
-                score += 10 if self.numJoueur == 2 else 5
+                score += 20 if self.numJoueur == 2 else 10
                 score -= self.ComptPions(self.numJoueur)
             if self.isDuo(x, y):
-                score += 10 if self.numJoueur == 1 else 5
-                score -= self.ComptPions(self.numJoueur)                     
+                score += 20 if self.numJoueur == 1 else 10
+                score -= self.ComptPions(self.numJoueur)    
+            if self.VoisinProche(x,y):
+                score += 1                 
             #print(f'score:{score} pour la pose : {x},{y}')
         return score
         
 #%% Autre fonctions
+    def VoisinProche(self,x,y):
+        xmin = 0 if x <= 0 else x-1
+        ymin = 0 if y <= 0 else y-1
+        xmax = self.N-1 if x >= self.N-1 else x+1
+        ymax = self.N-1 if y >= self.N-1 else y+1
+        chara = 'X' if self.numJoueur == 2 else 'O'
+        for i in range(xmin,xmax+1):
+            for j in range(ymin,ymax+1):
+                if self.plateau[i][j] == chara:
+                    return True
+        return False
+        
     def isSolo(self,x,y):
         if (self.plateau[x][y] != '.') and ( (self.TestBottom(x+1,y, self.plateau[x][y])+ self.TestUpper(x-1,y,self.plateau[x][y])== 0 ) or (self.TestLeft(x,y-1, self.plateau[x][y])+ self.TestRight(x,y+1,self.plateau[x][y]) == 0) or (self.TestBottomRight(x+1,y+1, self.plateau[x][y])+ self.TestUpperLeft(x-1,y-1,self.plateau[x][y]) == 0) or (self.TestUpperRight(x-1,y+1, self.plateau[x][y])+ self.TestBottomLeft(x+1,y-1,self.plateau[x][y]) == 0)):
             return True
@@ -392,7 +406,6 @@ def Min_Value(morpion,a, profondeur = 0, alpha = -1000000, beta=1000000):
         etatBase = morpion.etat
         morpion.Result(a)
         val = morpion.Utility(a)
-        print(f"min val : {val}")
         morpion.UnResult(a, etatBase)
         return val
     score_min = 100000
@@ -402,10 +415,8 @@ def Min_Value(morpion,a, profondeur = 0, alpha = -1000000, beta=1000000):
         score_min = min(score_min,Max_Value(morpion.Result(a),a,profondeur,alpha,beta))
         morpion.UnResult(a, etatBase)
         beta = min(score_min,beta)
-        """
         if beta <= alpha:
             break
-        """
     return score_min
 
 def Max_Value(morpion, a, profondeur = 0, alpha = -1000000, beta = 1000000):
@@ -415,7 +426,6 @@ def Max_Value(morpion, a, profondeur = 0, alpha = -1000000, beta = 1000000):
         etatBase = morpion.etat
         morpion.Result(a)
         val = morpion.Utility(a)
-        print(f"Max val : {val}")
         morpion.UnResult(a, etatBase)
         return val
     score_max = -100000
@@ -425,10 +435,8 @@ def Max_Value(morpion, a, profondeur = 0, alpha = -1000000, beta = 1000000):
         score_max = max(score_max,Min_Value(morpion.Result(a),a,profondeur,alpha,beta))
         morpion.UnResult(a, etatBase)
         alpha = max(alpha,score_max)
-        """
         if beta <= alpha:
             break
-        """
     return score_max
 
 #%% Game
@@ -467,7 +475,6 @@ def Partie():
                 j = input("Valeur du j adverse: \n")
             i = int(i)
             j = int(j)
-            print(f'i:{i},j:{j}')
             m = m.Result((i-1,j-1))
         nbCoups += 1
     valWin = m.win()
