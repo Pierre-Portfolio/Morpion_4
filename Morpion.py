@@ -9,7 +9,7 @@ import time
 import random
 import copy
 
-Prof= 4
+Prof= 0
 count = 0
 class Morpion():
     def __init__(self, numJoueur = 1,plateau=None, etat = None,N = 12, lcj=None):
@@ -28,8 +28,12 @@ class Morpion():
             self.etat = 1
         self.numJoueur = numJoueur
     def Afficher(self):
+        col = '   '
+        for k in range(self.N):
+            col += ' '+str(k+1)
+        print(col)
         for i in range(self.N):
-            s = ''
+            s = '  '+str(i+1) if i+1 < 10 else ' '+str(i+1)
             for j in range(self.N):
                 s += ' '+self.plateau[i][j]
             print(s)
@@ -119,12 +123,12 @@ class Morpion():
             if res != '.':
                 break;  
         if ( res == 'O'):
-            return ( 2)
-        else :
-            if res == 'X':
-                return (1)
-            elif (self.finDePartie()): #MatchNull
-                return -1
+            return (2)
+        elif res == 'X':
+            return (1)
+        elif (self.finDePartie()): #MatchNull
+            return -1
+        else:
             return (0)
         
     def Actions(self):
@@ -172,11 +176,11 @@ class Morpion():
         if(self.Terminal_Test()):
             win = self.win()
             if(win == self.numJoueur):
-                return 1000 - self.ComptPions(self.numJoueur)
+                return 10000 - self.ComptPions(self.numJoueur)
             elif(win == -1):
                 return 10
             else:
-                return -1000 + self.ComptPions(1 if self.numJoueur == 2 else 2)
+                return -10000 + self.ComptPions(1 if self.numJoueur == 2 else 2)
         else:
             # J1 : Bloquer un Trio > Poser un Trio > Poser un duo > bloquer un duo > Poser Solo
             # J2 : Bloquer un Trio > Poser un Trio > Bloquer un duo > poser un duo > Poser Solo
@@ -186,18 +190,20 @@ class Morpion():
             bloqueD, nbD = self.bloqueDuo(x, y)
             score = nbD + nbT
             if bloqueT:
-                score += 30
+                score += 30 - self.ComptPions(self.numJoueur)
             if self.isTrio(x, y):
-                score += 20
+                score += 20 - self.ComptPions(self.numJoueur)
                 if bloqueT: #Si isTrio + bloque score * 10
-                    score*=10
+                    score= score * 10
                 elif bloqueD:
-                    score*=5
+                    score= score * 5
             if bloqueD:
                 score += 10 if self.numJoueur == 2 else 5
+                score -= self.ComptPions(self.numJoueur)
             if self.isDuo(x, y):
                 score += 10 if self.numJoueur == 1 else 5
-                
+                score -= self.ComptPions(self.numJoueur)                     
+            #print(f'score:{score} pour la pose : {x},{y}')
         return score
         
 #%% Autre fonctions
@@ -224,39 +230,39 @@ class Morpion():
         xmax = self.N-1 if x >= self.N-1 else x+1
         ymax = self.N-1 if y >= self.N-1 else y+1
         chara = 'X' if self.numJoueur == 2 else 'O'
-        for i in range(xmin,xmax):
-            for j in range(ymin,ymax):
-                if i!=x and j!=y:
+        for i in range(xmin,xmax+1):
+            for j in range(ymin,ymax+1):
+                if i!=x or j!=y:
                     if i == x-1 and j == y-1:
-                        if self.TestUpperLeft(i, j, chara,2) and not self.TestUpperLeft(i, j, chara,1):
+                        if self.TestUpperLeft(i, j, chara,2)  == 4:
                             b = True
                             res += 1
                     elif i == x-1 and j == y:
-                        if self.TestUpper(i, j, chara,2) and not self.TestUpper(i, j, chara,1):
+                        if self.TestUpper(i, j, chara,2) == 4:
                             b = True
                             res += 1
                     elif i == x-1 and j == y+1:
-                        if self.TestUpperRight(i, j, chara,2) and not self.TestUpperRight(i, j, chara,1):
+                        if self.TestUpperRight(i, j, chara,2) == 4:
                             b = True
                             res += 1
                     elif i == x and j == y-1:
-                        if self.TestLeft(i, j, chara,2) and not self.TestLeft(i, j, chara,1):
+                        if self.TestLeft(i, j, chara,2) == 4:
                             b = True
                             res += 1
                     elif i == x and j == y+1:
-                        if self.TestRight(i, j, chara,2) and not self.TestRight(i, j, chara,1):
+                        if self.TestRight(i, j, chara,2) == 4:
                             b = True
                             res += 1
                     elif i == x+1 and j == y-1:
-                        if self.TestBottomLeft(i, j, chara,2) and not self.TestBottomLeft(i, j, chara,1):
+                        if self.TestBottomLeft(i, j, chara,2) == 4:
                             b = True
                             res += 1
                     elif i == x+1 and j == y:
-                        if self.TestBottom(i, j, chara,2) and not self.TestBottom(i, j, chara,1):
+                        if self.TestBottom(i, j, chara,2) == 4:
                             b = True
                             res += 1
                     elif i == x+1 and j == y+1:
-                        if self.TestBottomRight(i, j, chara,2) and not self.TestBottomRight(i, j, chara,1):
+                        if self.TestBottomRight(i, j, chara,2) == 4:
                             b = True
                             res += 1
         return res,b
@@ -269,39 +275,39 @@ class Morpion():
         xmax = self.N-1 if x >= self.N-1 else x+1
         ymax = self.N-1 if y >= self.N-1 else y+1
         chara = 'X' if self.numJoueur == 2 else 'O'
-        for i in range(xmin,xmax):
-            for j in range(ymin,ymax):
-                if i!=x and j!=y:
+        for i in range(xmin,xmax+1):
+            for j in range(ymin,ymax+1):
+                if i!=x or j!=y:
                     if i == x-1 and j == y-1:
-                        if self.TestUpperLeft(i, j, chara,1):
+                        if self.TestUpperLeft(i, j, chara,1) == 4:
                             b = True
                             res += 1
                     elif i == x-1 and j == y:
-                        if self.TestUpper(i, j, chara,1):
+                        if self.TestUpper(i, j, chara,1) == 4:
                             b = True
                             res += 1
                     elif i == x-1 and j == y+1:
-                        if self.TestUpperRight(i, j, chara,1):
+                        if self.TestUpperRight(i, j, chara,1) == 4:
                             b = True
                             res += 1
                     elif i == x and j == y-1:
-                        if self.TestLeft(i, j, chara,1):
+                        if self.TestLeft(i, j, chara,1) == 4:
                             b = True
                             res += 1
                     elif i == x and j == y+1:
-                        if self.TestRight(i, j, chara,1):
+                        if self.TestRight(i, j, chara,1) == 4:
                             b = True
                             res += 1
                     elif i == x+1 and j == y-1:
-                        if self.TestBottomLeft(i, j, chara,1):
+                        if self.TestBottomLeft(i, j, chara,1) == 4:
                             b = True
                             res += 1
                     elif i == x+1 and j == y:
-                        if self.TestBottom(i, j, chara,1):
+                        if self.TestBottom(i, j, chara,1) == 4:
                             b = True
                             res += 1
                     elif i == x+1 and j == y+1:
-                        if self.TestBottomRight(i, j, chara,1):
+                        if self.TestBottomRight(i, j, chara,1) == 4:
                             b = True
                             res += 1
         return res,b
@@ -309,6 +315,7 @@ class Morpion():
 def decoTimer(fonction):
     def inner(*param, **param2):
         tic = time.perf_counter()
+        print(f'Début de la recherche : {tic}')
         val = fonction(*param, **param2)
         tac = time.perf_counter()
         print(f"Temps d'execution de {tac - tic:0.6f} sec")
@@ -322,14 +329,14 @@ def getSubTab(morpion):
     jmax=0
     for point in morpion.listeCoupJoue:
         #print("test getSubTAb")
-        if imin>point[0]:
+        if imin>=point[0]:
             #imin = 0 if point[0] < 0 else point[0]
             imin=max(0,point[0]-2)
-        if imax<point[0]:
+        if imax<=point[0]:
             imax=min(11,point[0]+2)
-        if jmin>point[1]:
+        if jmin>=point[1]:
             jmin=max(0,point[1]-2)
-        if jmax<point[1]:
+        if jmax<=point[1]:
             jmax=min(11,point[1]+2)
             
         while jmax-jmin>imax-imin:
@@ -357,7 +364,10 @@ def MinMax_Decision(morpion):
     copy_morp = copy.deepcopy(morpion)
     copy_morp.Afficher()
     indexMin, indexMax, newN = getSubTab(copy_morp)
-    nplateau = [['.' for i in range(indexMin[0],indexMax[0])] for j in range(indexMin[1],indexMax[1])]
+    #Création du sous tableau
+    print(indexMin)
+    print(indexMax)
+    nplateau = [['.' for i in range(indexMin[0],indexMax[0]+1)] for j in range(indexMin[1],indexMax[1]+1)]
     for i in range(newN):
         for j in range(newN):
             #print(f'i:{i},j:{j}')
@@ -367,46 +377,70 @@ def MinMax_Decision(morpion):
     etatBase = morp.etat
     for a in morp.Actions():
         la.append((a,Max_Value(morp.Result(a),a,Prof)))
+        morp.Afficher()
         morp.UnResult(a, etatBase)
     la = sorted(la, key = lambda val:val[1], reverse = True)
+    print(la)
     res = (la[0][0][0]+indexMin[0],la[0][0][1]+indexMin[1])
+    print(f'{indexMin[0]},{indexMin[1]}')
     return res
 
-def Min_Value(morpion,a, profondeur = 0):
+def Min_Value(morpion,a, profondeur = 0, alpha = -1000000, beta=1000000):
     global count
     count += 1
     if(morpion.Terminal_Test() or profondeur == 0):
-        return morpion.Utility(a)
+        etatBase = morpion.etat
+        morpion.Result(a)
+        val = morpion.Utility(a)
+        print(f"min val : {val}")
+        morpion.UnResult(a, etatBase)
+        return val
     score_min = 100000
     etatBase = morpion.etat
     profondeur -= 1
     for a in morpion.Actions():
-        score_min = min(score_min,Max_Value(morpion.Result(a),a,profondeur))
+        score_min = min(score_min,Max_Value(morpion.Result(a),a,profondeur,alpha,beta))
         morpion.UnResult(a, etatBase)
+        beta = min(score_min,beta)
+        """
+        if beta <= alpha:
+            break
+        """
     return score_min
 
-def Max_Value(morpion, a, profondeur = 0):
+def Max_Value(morpion, a, profondeur = 0, alpha = -1000000, beta = 1000000):
     global count
     count += 1
     if(morpion.Terminal_Test() or profondeur == 0):
-        return morpion.Utility(a)
+        etatBase = morpion.etat
+        morpion.Result(a)
+        val = morpion.Utility(a)
+        print(f"Max val : {val}")
+        morpion.UnResult(a, etatBase)
+        return val
     score_max = -100000
     etatBase = morpion.etat
     profondeur -= 1
     for a in morpion.Actions():
-        score_max = max(score_max,Min_Value(morpion.Result(a),a,profondeur))
+        score_max = max(score_max,Min_Value(morpion.Result(a),a,profondeur,alpha,beta))
         morpion.UnResult(a, etatBase)
+        alpha = max(alpha,score_max)
+        """
+        if beta <= alpha:
+            break
+        """
     return score_max
 
+#%% Game
 def RepresentsInt(s):
     try: 
         s = int(s)
-        if(s<0 or s >= 12):
+        if(s<=0 or s > 12):
             return False
         return True
     except ValueError:
         return False
-
+    
 def Partie():
     nbCoups = 0
     numjoueur = input("Numero de joueurs ?\n") #correspond a notre ia
@@ -419,7 +453,6 @@ def Partie():
                 m.Result((5,5))
             else:
                 print("************************\n*    Au tour de l'ia   *\n************************")
-                print("Début du MinMax")
                 val = MinMax_Decision(m)
                 print(f'nb calcul :{count}')
                 print(f"Valeur a jouer : {val[0]+1},{val[1]+1}")
@@ -434,11 +467,13 @@ def Partie():
                 j = input("Valeur du j adverse: \n")
             i = int(i)
             j = int(j)
-            m = m.Result((i,j))
+            print(f'i:{i},j:{j}')
+            m = m.Result((i-1,j-1))
         nbCoups += 1
     valWin = m.win()
     winner = "Null" if valWin == 0 else "J1" if valWin == 1 else "J2"
     print(f"Fin de partie ! Gagnant : {winner}")
+    m.Afficher()
                 
     
 
