@@ -7,11 +7,17 @@ Created on Tue May  4 16:31:49 2021
 import numpy as np
 import time
 import random
+import copy
 
-N = 12
-Prof= 2
+Prof= 4
+count = 0
 class Morpion():
-    def __init__(self, numJoueur = 1,plateau=None, etat = None):
+    def __init__(self, numJoueur = 1,plateau=None, etat = None,N = 12, lcj=None):
+        self.N = N
+        if lcj == None:
+            self.listeCoupJoue=[]
+        else:
+            self.listeCoupJoue = lcj
         if( plateau != None):
             self.plateau = plateau
         else:
@@ -22,21 +28,21 @@ class Morpion():
             self.etat = 1
         self.numJoueur = numJoueur
     def Afficher(self):
-        for i in range(N):
+        for i in range(self.N):
             s = ''
-            for j in range(N):
+            for j in range(self.N):
                 s += ' '+self.plateau[i][j]
             print(s)
     
     def finDePartie(self):
-        for k in range(N):
-            for l in range(N):
+        for k in range(self.N):
+            for l in range(self.N):
                 if self.plateau[k][l]=='.':
                     return False
         return True
     
     def TestBottom(self,i,j,chara,nbrIt=0):
-        if i>=N:
+        if i>=self.N:
             return nbrIt
         if nbrIt==4:
             return nbrIt
@@ -54,7 +60,7 @@ class Morpion():
         return nbrIt
         
     def TestRight(self,i,j,chara,nbrIt=0):
-        if j < N and nbrIt < 4 and self.plateau[i][j] == chara:
+        if j < self.N and nbrIt < 4 and self.plateau[i][j] == chara:
             return self.TestRight(i,j+1,chara,nbrIt+1)
         return nbrIt
     
@@ -64,7 +70,7 @@ class Morpion():
         return nbrIt
     
     def TestBottomRight(self,i,j,chara,nbrIt=0):
-        if (i>=N) or (j>=N):
+        if (i>=self.N) or (j>=self.N):
             return nbrIt
         if nbrIt==4:
             return nbrIt
@@ -73,7 +79,7 @@ class Morpion():
         return nbrIt
     
     def TestBottomLeft(self,i,j,chara,nbrIt=0):
-        if (i>=N) or (j<0):
+        if (i>=self.N) or (j<0):
             return nbrIt
         if nbrIt==4:
             return nbrIt
@@ -82,7 +88,7 @@ class Morpion():
         return nbrIt
     
     def TestUpperRight(self,i,j,chara,nbrIt=0):
-        if (i<0) or (j>=N):
+        if (i<0) or (j>=self.N):
             return nbrIt
         if nbrIt==4:
             return nbrIt
@@ -101,13 +107,13 @@ class Morpion():
 
     def win(self):                    
         res ='.'
-        for i in range(N):
+        for i in range(self.N):
             if i%4 == 0:  
-                for j in range(N):
+                for j in range(self.N):
                     if (self.plateau[i][j] != '.') and ( (self.TestBottom(i+1,j, self.plateau[i][j])+ self.TestUpper(i-1,j,self.plateau[i][j])== 3 ) or (self.TestLeft(i,j-1, self.plateau[i][j])+ self.TestRight(i,j+1,self.plateau[i][j]) == 3) or (self.TestBottomRight(i+1,j+1, self.plateau[i][j])+ self.TestUpperLeft(i-1,j-1,self.plateau[i][j]) == 3) or (self.TestUpperRight(i-1,j+1, self.plateau[i][j])+ self.TestBottomLeft(i+1,j-1,self.plateau[i][j]) == 3) ):                   
                         res = self.plateau[i][j]                       
             else:
-                for j in range(0,N,4):
+                for j in range(0,self.N,4):
                     if (self.plateau[i][j] != '.') and ( (self.TestBottom(i+1,j, self.plateau[i][j])+ self.TestUpper(i-1,j,self.plateau[i][j])== 3 ) or (self.TestLeft(i,j-1, self.plateau[i][j])+ self.TestRight(i,j+1,self.plateau[i][j]) == 3) or (self.TestBottomRight(i+1,j+1, self.plateau[i][j])+ self.TestUpperLeft(i-1,j-1,self.plateau[i][j]) == 3) or (self.TestUpperRight(i-1,j+1, self.plateau[i][j])+ self.TestBottomLeft(i+1,j-1,self.plateau[i][j]) == 3) ):                   
                         res = self.plateau[i][j]                   
             if res != '.':
@@ -123,13 +129,14 @@ class Morpion():
         
     def Actions(self):
         coups = [];
-        for i in range(N):
-            for j in range(N):
+        for i in range(self.N):
+            for j in range(self.N):
                 if(self.plateau[i][j] == '.'):
                    coups.append((i,j))
         return coups
     
     def Result(self,a):
+        self.listeCoupJoue.append(a)
         i = a[0]
         j = a[1]
         if(self.plateau[i][j] == '.'):
@@ -141,6 +148,7 @@ class Morpion():
         return self
     
     def UnResult(self,a,etatBase):
+        self.listeCoupJoue.remove(a)
         i = a[0]
         j = a[1]
         self.plateau[i][j] = '.'
@@ -154,43 +162,219 @@ class Morpion():
     
     def ComptPions(self,val):
         res = 0
-        for i in range(N):
-            for j in range(N):
+        for i in range(self.N):
+            for j in range(self.N):
                 if((val ==  1 and self.plateau[i][j]=='X') or (val ==  2 and self.plateau[i][j]=='O')):
                     res += 1
         return res
     
-    def Utility(self,a):
+    def Utility(self, a):
         if(self.Terminal_Test()):
             win = self.win()
             if(win == self.numJoueur):
                 return 1000 - self.ComptPions(self.numJoueur)
             elif(win == -1):
-                return 0
+                return 10
             else:
                 return -1000 + self.ComptPions(1 if self.numJoueur == 2 else 2)
         else:
-            #Faire isTrio : donne un score * (1/self.numJoueur) puis ifbloqueDuo or bloqueTrioSimple: donne un score (l'idée c'est gagne > bloqueTrioSimple (pas de possiblité de win des deux cotés) > trio > BloqueDuo (si numJoueur == 2) > duo > BloqueDuo (si numJoueur == 1))
-            #Si isTrio + bloque score * 10
-            return 0
+            # J1 : Bloquer un Trio > Poser un Trio > Poser un duo > bloquer un duo > Poser Solo
+            # J2 : Bloquer un Trio > Poser un Trio > Bloquer un duo > poser un duo > Poser Solo
+            x = a[0]
+            y = a[1]
+            bloqueT, nbT = self.bloqueTrio(x, y)
+            bloqueD, nbD = self.bloqueDuo(x, y)
+            score = nbD + nbT
+            if bloqueT:
+                score += 30
+            if self.isTrio(x, y):
+                score += 20
+                if bloqueT: #Si isTrio + bloque score * 10
+                    score*=10
+                elif bloqueD:
+                    score*=5
+            if bloqueD:
+                score += 10 if self.numJoueur == 2 else 5
+            if self.isDuo(x, y):
+                score += 10 if self.numJoueur == 1 else 5
+                
+        return score
+        
+#%% Autre fonctions
+    def isSolo(self,x,y):
+        if (self.plateau[x][y] != '.') and ( (self.TestBottom(x+1,y, self.plateau[x][y])+ self.TestUpper(x-1,y,self.plateau[x][y])== 0 ) or (self.TestLeft(x,y-1, self.plateau[x][y])+ self.TestRight(x,y+1,self.plateau[x][y]) == 0) or (self.TestBottomRight(x+1,y+1, self.plateau[x][y])+ self.TestUpperLeft(x-1,y-1,self.plateau[x][y]) == 0) or (self.TestUpperRight(x-1,y+1, self.plateau[x][y])+ self.TestBottomLeft(x+1,y-1,self.plateau[x][y]) == 0)):
+            return True
+        return False
     
+    def isDuo(self,x,y):
+        if (self.plateau[x][y] != '.') and ( (self.TestBottom(x+1,y, self.plateau[x][y])+ self.TestUpper(x-1,y,self.plateau[x][y])== 1 ) or (self.TestLeft(x,y-1, self.plateau[x][y])+ self.TestRight(x,y+1,self.plateau[x][y]) == 1) or (self.TestBottomRight(x+1,y+1, self.plateau[x][y])+ self.TestUpperLeft(x-1,y-1,self.plateau[x][y]) == 1) or (self.TestUpperRight(x-1,y+1, self.plateau[x][y])+ self.TestBottomLeft(x+1,y-1,self.plateau[x][y]) == 1)):
+            return True
+        return False
+    
+    def isTrio(self,x,y):
+        if (self.plateau[x][y] != '.') and ( (self.TestBottom(x+1,y, self.plateau[x][y])+ self.TestUpper(x-1,y,self.plateau[x][y])== 2 ) or (self.TestLeft(x,y-1, self.plateau[x][y])+ self.TestRight(x,y+1,self.plateau[x][y]) == 2) or (self.TestBottomRight(x+1,y+1, self.plateau[x][y])+ self.TestUpperLeft(x-1,y-1,self.plateau[x][y]) == 2) or (self.TestUpperRight(x-1,y+1, self.plateau[x][y])+ self.TestBottomLeft(x+1,y-1,self.plateau[x][y]) == 2)):
+            return True
+        return False
+    
+    def bloqueDuo(self,x,y):
+        res = 0
+        b = False
+        xmin = 0 if x <= 0 else x-1
+        ymin = 0 if y <= 0 else y-1
+        xmax = self.N-1 if x >= self.N-1 else x+1
+        ymax = self.N-1 if y >= self.N-1 else y+1
+        chara = 'X' if self.numJoueur == 2 else 'O'
+        for i in range(xmin,xmax):
+            for j in range(ymin,ymax):
+                if i!=x and j!=y:
+                    if i == x-1 and j == y-1:
+                        if self.TestUpperLeft(i, j, chara,2) and not self.TestUpperLeft(i, j, chara,1):
+                            b = True
+                            res += 1
+                    elif i == x-1 and j == y:
+                        if self.TestUpper(i, j, chara,2) and not self.TestUpper(i, j, chara,1):
+                            b = True
+                            res += 1
+                    elif i == x-1 and j == y+1:
+                        if self.TestUpperRight(i, j, chara,2) and not self.TestUpperRight(i, j, chara,1):
+                            b = True
+                            res += 1
+                    elif i == x and j == y-1:
+                        if self.TestLeft(i, j, chara,2) and not self.TestLeft(i, j, chara,1):
+                            b = True
+                            res += 1
+                    elif i == x and j == y+1:
+                        if self.TestRight(i, j, chara,2) and not self.TestRight(i, j, chara,1):
+                            b = True
+                            res += 1
+                    elif i == x+1 and j == y-1:
+                        if self.TestBottomLeft(i, j, chara,2) and not self.TestBottomLeft(i, j, chara,1):
+                            b = True
+                            res += 1
+                    elif i == x+1 and j == y:
+                        if self.TestBottom(i, j, chara,2) and not self.TestBottom(i, j, chara,1):
+                            b = True
+                            res += 1
+                    elif i == x+1 and j == y+1:
+                        if self.TestBottomRight(i, j, chara,2) and not self.TestBottomRight(i, j, chara,1):
+                            b = True
+                            res += 1
+        return res,b
+    
+    def bloqueTrio(self,x,y):
+        res = 0
+        b = False
+        xmin = 0 if x <= 0 else x-1
+        ymin = 0 if y <= 0 else y-1
+        xmax = self.N-1 if x >= self.N-1 else x+1
+        ymax = self.N-1 if y >= self.N-1 else y+1
+        chara = 'X' if self.numJoueur == 2 else 'O'
+        for i in range(xmin,xmax):
+            for j in range(ymin,ymax):
+                if i!=x and j!=y:
+                    if i == x-1 and j == y-1:
+                        if self.TestUpperLeft(i, j, chara,1):
+                            b = True
+                            res += 1
+                    elif i == x-1 and j == y:
+                        if self.TestUpper(i, j, chara,1):
+                            b = True
+                            res += 1
+                    elif i == x-1 and j == y+1:
+                        if self.TestUpperRight(i, j, chara,1):
+                            b = True
+                            res += 1
+                    elif i == x and j == y-1:
+                        if self.TestLeft(i, j, chara,1):
+                            b = True
+                            res += 1
+                    elif i == x and j == y+1:
+                        if self.TestRight(i, j, chara,1):
+                            b = True
+                            res += 1
+                    elif i == x+1 and j == y-1:
+                        if self.TestBottomLeft(i, j, chara,1):
+                            b = True
+                            res += 1
+                    elif i == x+1 and j == y:
+                        if self.TestBottom(i, j, chara,1):
+                            b = True
+                            res += 1
+                    elif i == x+1 and j == y+1:
+                        if self.TestBottomRight(i, j, chara,1):
+                            b = True
+                            res += 1
+        return res,b
 #%% Algo Minmax
+def decoTimer(fonction):
+    def inner(*param, **param2):
+        tic = time.perf_counter()
+        val = fonction(*param, **param2)
+        tac = time.perf_counter()
+        print(f"Temps d'execution de {tac - tic:0.6f} sec")
+        return val
+    return inner
+
+def getSubTab(morpion):
+    imin=11
+    imax=0
+    jmin=11
+    jmax=0
+    for point in morpion.listeCoupJoue:
+        #print("test getSubTAb")
+        if imin>point[0]:
+            #imin = 0 if point[0] < 0 else point[0]
+            imin=max(0,point[0]-2)
+        if imax<point[0]:
+            imax=min(11,point[0]+2)
+        if jmin>point[1]:
+            jmin=max(0,point[1]-2)
+        if jmax<point[1]:
+            jmax=min(11,point[1]+2)
             
+        while jmax-jmin>imax-imin:
+            if imin>0:
+                imin-=1
+            if jmax-jmin>imax-imin:
+                if imax<11:
+                    imax+=1
+                else:
+                    imin-=1
+        while imax-imin>jmax-jmin:
+            if jmin>0:
+                jmin-=1
+            if imax-imin>jmax-jmin:
+                if jmax<11:
+                    jmax+=1
+                else:
+                    jmin-=1
+    return [imin,jmin],[imax,jmax], abs(jmax-jmin)
+
+@decoTimer
 def MinMax_Decision(morpion):
-    nplateau = [['.' for i in range(N)] for j in range(N)]
-    for i in range(N):
-        for j in range(N):
-            nplateau[i][j] = morpion.plateau[i][j]
-    morp = Morpion(morpion.numJoueur,nplateau,morpion.etat)
+    global count
+    count = 0
+    copy_morp = copy.deepcopy(morpion)
+    copy_morp.Afficher()
+    indexMin, indexMax, newN = getSubTab(copy_morp)
+    nplateau = [['.' for i in range(indexMin[0],indexMax[0])] for j in range(indexMin[1],indexMax[1])]
+    for i in range(newN):
+        for j in range(newN):
+            #print(f'i:{i},j:{j}')
+            nplateau[i][j] = copy_morp.plateau[i+indexMin[0]][j+indexMin[1]]
+    morp = Morpion(copy_morp.numJoueur,nplateau,copy_morp.etat,newN)
     la= []
     etatBase = morp.etat
     for a in morp.Actions():
         la.append((a,Max_Value(morp.Result(a),a,Prof)))
         morp.UnResult(a, etatBase)
     la = sorted(la, key = lambda val:val[1], reverse = True)
-    return la[0][0]
+    res = (la[0][0][0]+indexMin[0],la[0][0][1]+indexMin[1])
+    return res
 
 def Min_Value(morpion,a, profondeur = 0):
+    global count
+    count += 1
     if(morpion.Terminal_Test() or profondeur == 0):
         return morpion.Utility(a)
     score_min = 100000
@@ -202,6 +386,8 @@ def Min_Value(morpion,a, profondeur = 0):
     return score_min
 
 def Max_Value(morpion, a, profondeur = 0):
+    global count
+    count += 1
     if(morpion.Terminal_Test() or profondeur == 0):
         return morpion.Utility(a)
     score_max = -100000
@@ -211,7 +397,6 @@ def Max_Value(morpion, a, profondeur = 0):
         score_max = max(score_max,Min_Value(morpion.Result(a),a,profondeur))
         morpion.UnResult(a, etatBase)
     return score_max
-
 
 def RepresentsInt(s):
     try: 
@@ -236,7 +421,8 @@ def Partie():
                 print("************************\n*    Au tour de l'ia   *\n************************")
                 print("Début du MinMax")
                 val = MinMax_Decision(m)
-                print(f"Valeur a jouer : {val[0]+1}{val[1]+1}")
+                print(f'nb calcul :{count}')
+                print(f"Valeur a jouer : {val[0]+1},{val[1]+1}")
                 m.Result(val)
                 print(f"{m.win()}")
         else:
