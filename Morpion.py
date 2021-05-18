@@ -9,7 +9,7 @@ import time
 import random
 import copy
 
-Prof= 0
+Prof= 4
 count = 0
 class Morpion():
     def __init__(self, numJoueur = 1,plateau=None, etat = None,N = 12, lcj=None):
@@ -172,41 +172,75 @@ class Morpion():
                     res += 1
         return res
     
+    def Evaluate(self,a):
+        # J1 : Bloquer un Trio > Poser un Trio > Poser un duo > bloquer un duo > Poser Solo
+        # J2 : Bloquer un Trio > Poser un Trio > Bloquer un duo > poser un duo > Poser Solo
+        x = a[0]
+        y = a[1]
+        bloqueT, nbT = self.bloqueTrio(x, y)
+        bloqueD, nbD = self.bloqueDuo(x, y)
+        score = nbD + nbT
+        if bloqueT:
+            score += 60 - self.ComptPions(self.numJoueur)
+        if self.isTrio(x, y):
+            score += 40 - self.ComptPions(self.numJoueur)
+            if bloqueT: #Si isTrio + bloque score * 10
+                score= score * 10
+            elif bloqueD:
+                score= score * 5
+        if bloqueD:
+            score += 20 if self.numJoueur == 2 else 10
+            score -= self.ComptPions(self.numJoueur)
+        if self.isDuo(x, y):
+            score += 20 if self.numJoueur == 1 else 10
+            score -= self.ComptPions(self.numJoueur)    
+        if self.VoisinProche(x,y):
+            score += 1                 
+        #print(f'score:{score} pour la pose : {x},{y}')
+        return score
+    
     def Utility(self, a):
+        score = 0
         if(self.Terminal_Test()):
             win = self.win()
             if(win == self.numJoueur):
-                return 10000 - self.ComptPions(self.numJoueur)
+                score += 10000 - self.ComptPions(self.numJoueur)
             elif(win == -1):
                 return 10
             else:
-                return -10000 + self.ComptPions(1 if self.numJoueur == 2 else 2)
-        else:
-            # J1 : Bloquer un Trio > Poser un Trio > Poser un duo > bloquer un duo > Poser Solo
-            # J2 : Bloquer un Trio > Poser un Trio > Bloquer un duo > poser un duo > Poser Solo
-            x = a[0]
-            y = a[1]
-            bloqueT, nbT = self.bloqueTrio(x, y)
-            bloqueD, nbD = self.bloqueDuo(x, y)
-            score = nbD + nbT
-            if bloqueT:
-                score += 60 - self.ComptPions(self.numJoueur)
-            if self.isTrio(x, y):
-                score += 40 - self.ComptPions(self.numJoueur)
-                if bloqueT: #Si isTrio + bloque score * 10
-                    score= score * 10
-                elif bloqueD:
-                    score= score * 5
-            if bloqueD:
-                score += 20 if self.numJoueur == 2 else 10
-                score -= self.ComptPions(self.numJoueur)
-            if self.isDuo(x, y):
-                score += 20 if self.numJoueur == 1 else 10
-                score -= self.ComptPions(self.numJoueur)    
-            if self.VoisinProche(x,y):
-                score += 1                 
-            #print(f'score:{score} pour la pose : {x},{y}')
+                score+= -10000 + self.ComptPions(1 if self.numJoueur == 2 else 2)
+        chara = 'X' if self.numJoueur == 1 else 'O'
+        for point in self.listeCoupJoue:
+            if self.plateau[point[0]][point[1]] == chara:
+                score += self.Evaluate(point)
         return score
+        """
+        # J1 : Bloquer un Trio > Poser un Trio > Poser un duo > bloquer un duo > Poser Solo
+        # J2 : Bloquer un Trio > Poser un Trio > Bloquer un duo > poser un duo > Poser Solo
+        x = a[0]
+        y = a[1]
+        bloqueT, nbT = self.bloqueTrio(x, y)
+        bloqueD, nbD = self.bloqueDuo(x, y)
+        score = nbD + nbT
+        if bloqueT:
+            score += 60 - self.ComptPions(self.numJoueur)
+        if self.isTrio(x, y):
+            score += 40 - self.ComptPions(self.numJoueur)
+            if bloqueT: #Si isTrio + bloque score * 10
+                score= score * 10
+            elif bloqueD:
+                score= score * 5
+        if bloqueD:
+            score += 20 if self.numJoueur == 2 else 10
+            score -= self.ComptPions(self.numJoueur)
+        if self.isDuo(x, y):
+            score += 20 if self.numJoueur == 1 else 10
+            score -= self.ComptPions(self.numJoueur)    
+        if self.VoisinProche(x,y):
+            score += 1                 
+        #print(f'score:{score} pour la pose : {x},{y}')
+        return score
+        """
         
 #%% Autre fonctions
     def VoisinProche(self,x,y):
@@ -343,16 +377,19 @@ def getSubTab(morpion):
     jmax=0
     for point in morpion.listeCoupJoue:
         #print("test getSubTAb")
-        if imin>=point[0]:
-            #imin = 0 if point[0] < 0 else point[0]
+        if imin>=point[0]-2:
             imin=max(0,point[0]-2)
-        if imax<=point[0]:
+        if imax<=point[0]+2:
             imax=min(11,point[0]+2)
-        if jmin>=point[1]:
+        if jmin>=point[1]-2:
             jmin=max(0,point[1]-2)
-        if jmax<=point[1]:
+        if jmax<=point[1]+2:
             jmax=min(11,point[1]+2)
-            
+        iminsave = imin
+        imaxsave = imax
+        jminsave = jmin
+        jmaxsave = jmax
+        Nmax = max(imax-imin,jmax-jmin)
         while jmax-jmin>imax-imin:
             if imin>0:
                 imin-=1
