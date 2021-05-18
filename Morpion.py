@@ -486,9 +486,10 @@ def RepresentsInt(s):
 def Partie():
     global Prof
     nbCoups = 0
-    numjoueur = input("Numero de joueurs ?\n") #correspond a notre ia
-    Prof = ProfJ1 if numjoueur == 1 else numjoueur == 2
-    m = Morpion(int(numjoueur))
+    numjoueur = int(input("Numero de joueurs ?\n")) #correspond a notre ia
+    
+    Prof = ProfJ1 if numjoueur == 1 else ProfJ2
+    m = Morpion(numjoueur)
     while(m.win() == 0):
         m.Afficher()
         if(m.etat == m.numJoueur):
