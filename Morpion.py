@@ -9,7 +9,9 @@ import time
 import random
 import copy
 
-Prof= 3
+Prof= -1
+ProfJ1 = 2
+ProfJ2 = 2
 count = 0
 class Morpion():
     def __init__(self, numJoueur = 1,plateau=None, etat = None,N = 12, lcj=None):
@@ -482,8 +484,10 @@ def RepresentsInt(s):
         return False
     
 def Partie():
+    global Prof
     nbCoups = 0
     numjoueur = input("Numero de joueurs ?\n") #correspond a notre ia
+    Prof = ProfJ1 if numjoueur == 1 else numjoueur == 2
     m = Morpion(int(numjoueur))
     while(m.win() == 0):
         m.Afficher()
