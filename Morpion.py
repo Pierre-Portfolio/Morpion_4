@@ -9,7 +9,7 @@ import time
 import random
 import copy
 
-Prof= 4
+Prof= 3
 count = 0
 class Morpion():
     def __init__(self, numJoueur = 1,plateau=None, etat = None,N = 12, lcj=None):
@@ -197,9 +197,9 @@ class Morpion():
         if self.VoisinProche(x,y):
             score += 1                 
         #print(f'score:{score} pour la pose : {x},{y}')
-        return score
+        return score - len(self.listeCoupJoue)
     
-    def Utility(self, a):
+    def Utility(self):
         score = 0
         if(self.Terminal_Test()):
             win = self.win()
@@ -385,11 +385,6 @@ def getSubTab(morpion):
             jmin=max(0,point[1]-2)
         if jmax<=point[1]+2:
             jmax=min(11,point[1]+2)
-        iminsave = imin
-        imaxsave = imax
-        jminsave = jmin
-        jmaxsave = jmax
-        Nmax = max(imax-imin,jmax-jmin)
         while jmax-jmin>imax-imin:
             if imin>0:
                 imin-=1
@@ -442,7 +437,7 @@ def Min_Value(morpion,a, profondeur = 0, alpha = -1000000, beta=1000000):
     if(morpion.Terminal_Test() or profondeur == 0):
         etatBase = morpion.etat
         morpion.Result(a)
-        val = morpion.Utility(a)
+        val = morpion.Utility()
         morpion.UnResult(a, etatBase)
         return val
     score_min = 100000
@@ -462,7 +457,7 @@ def Max_Value(morpion, a, profondeur = 0, alpha = -1000000, beta = 1000000):
     if(morpion.Terminal_Test() or profondeur == 0):
         etatBase = morpion.etat
         morpion.Result(a)
-        val = morpion.Utility(a)
+        val = morpion.Utility()
         morpion.UnResult(a, etatBase)
         return val
     score_max = -100000
