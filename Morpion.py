@@ -9,6 +9,8 @@ import time
 import random
 import copy
 
+DEBUG = False
+
 Prof= -1
 ProfJ1 = 2
 ProfJ2 = 2
@@ -173,7 +175,7 @@ class Morpion():
                 if((val ==  1 and self.plateau[i][j]=='X') or (val ==  2 and self.plateau[i][j]=='O')):
                     res += 1
         return res
-    
+        
     def Evaluate(self,a):
         # J1 : Bloquer un Trio > Poser un Trio > Poser un duo > bloquer un duo > Poser Solo
         # J2 : Bloquer un Trio > Poser un Trio > Bloquer un duo > poser un duo > Poser Solo
@@ -181,7 +183,7 @@ class Morpion():
         y = a[1]
         bloqueT, nbT = self.bloqueTrio(x, y)
         bloqueD, nbD = self.bloqueDuo(x, y)
-        score = nbD + nbT
+        score = nbD + (nbT*2)
         if bloqueT:
             score += 60 - self.ComptPions(self.numJoueur)
         if self.isTrio(x, y):
@@ -196,8 +198,7 @@ class Morpion():
         if self.isDuo(x, y):
             score += 20 if self.numJoueur == 1 else 10
             score -= self.ComptPions(self.numJoueur)    
-        if self.VoisinProche(x,y):
-            score += 1                 
+        score += self.VoisinProche(x, y)               
         #print(f'score:{score} pour la pose : {x},{y}')
         return score - len(self.listeCoupJoue)
     
@@ -216,33 +217,6 @@ class Morpion():
             if self.plateau[point[0]][point[1]] == chara:
                 score += self.Evaluate(point)
         return score
-        """
-        # J1 : Bloquer un Trio > Poser un Trio > Poser un duo > bloquer un duo > Poser Solo
-        # J2 : Bloquer un Trio > Poser un Trio > Bloquer un duo > poser un duo > Poser Solo
-        x = a[0]
-        y = a[1]
-        bloqueT, nbT = self.bloqueTrio(x, y)
-        bloqueD, nbD = self.bloqueDuo(x, y)
-        score = nbD + nbT
-        if bloqueT:
-            score += 60 - self.ComptPions(self.numJoueur)
-        if self.isTrio(x, y):
-            score += 40 - self.ComptPions(self.numJoueur)
-            if bloqueT: #Si isTrio + bloque score * 10
-                score= score * 10
-            elif bloqueD:
-                score= score * 5
-        if bloqueD:
-            score += 20 if self.numJoueur == 2 else 10
-            score -= self.ComptPions(self.numJoueur)
-        if self.isDuo(x, y):
-            score += 20 if self.numJoueur == 1 else 10
-            score -= self.ComptPions(self.numJoueur)    
-        if self.VoisinProche(x,y):
-            score += 1                 
-        #print(f'score:{score} pour la pose : {x},{y}')
-        return score
-        """
         
 #%% Autre fonctions
     def VoisinProche(self,x,y):
@@ -250,12 +224,16 @@ class Morpion():
         ymin = 0 if y <= 0 else y-1
         xmax = self.N-1 if x >= self.N-1 else x+1
         ymax = self.N-1 if y >= self.N-1 else y+1
-        chara = 'X' if self.numJoueur == 2 else 'O'
+        #chara = 'X' if self.numJoueur == 2 else 'O'
+        res = 0
         for i in range(xmin,xmax+1):
             for j in range(ymin,ymax+1):
-                if self.plateau[i][j] == chara:
-                    return True
-        return False
+                if self.plateau[i][j] != '.':
+                    res += 1
+                #if self.plateau[i][j] == chara:
+                    #return True
+        return res
+        #return False
         
     def isSolo(self,x,y):
         if (self.plateau[x][y] != '.') and ( (self.TestBottom(x+1,y, self.plateau[x][y])+ self.TestUpper(x-1,y,self.plateau[x][y])== 0 ) or (self.TestLeft(x,y-1, self.plateau[x][y])+ self.TestRight(x,y+1,self.plateau[x][y]) == 0) or (self.TestBottomRight(x+1,y+1, self.plateau[x][y])+ self.TestUpperLeft(x-1,y-1,self.plateau[x][y]) == 0) or (self.TestUpperRight(x-1,y+1, self.plateau[x][y])+ self.TestBottomLeft(x+1,y-1,self.plateau[x][y]) == 0)):
@@ -403,18 +381,19 @@ def getSubTab(morpion):
                     jmax+=1
                 else:
                     jmin-=1
-    return [imin,jmin],[imax,jmax], abs(jmax-jmin)
+    return [imin,jmin],[imax,jmax], abs(jmax-jmin)+1
 
 @decoTimer
 def MinMax_Decision(morpion):
     global count
     count = 0
     copy_morp = copy.deepcopy(morpion)
-    copy_morp.Afficher()
+    #copy_morp.Afficher()
     indexMin, indexMax, newN = getSubTab(copy_morp)
     #Création du sous tableau
-    print(indexMin)
-    print(indexMax)
+    if DEBUG:
+        print(indexMin)
+        print(indexMax)
     nplateau = [['.' for i in range(indexMin[0],indexMax[0]+1)] for j in range(indexMin[1],indexMax[1]+1)]
     for i in range(newN):
         for j in range(newN):
@@ -425,12 +404,15 @@ def MinMax_Decision(morpion):
     etatBase = morp.etat
     for a in morp.Actions():
         la.append((a,Max_Value(morp.Result(a),a,Prof)))
-        morp.Afficher()
+        if DEBUG:
+            morp.Afficher()
         morp.UnResult(a, etatBase)
     la = sorted(la, key = lambda val:val[1], reverse = True)
-    print(la)
+    if DEBUG:
+        print(la)
     res = (la[0][0][0]+indexMin[0],la[0][0][1]+indexMin[1])
-    print(f'{indexMin[0]},{indexMin[1]}')
+    if DEBUG:
+        print(f'{indexMin[0]},{indexMin[1]}')
     return res
 
 def Min_Value(morpion,a, profondeur = 0, alpha = -1000000, beta=1000000):
@@ -484,6 +466,8 @@ def RepresentsInt(s):
         return False
     
 def Partie():
+    if DEBUG:
+        print("******************* Mode DEBUG *******************")
     global Prof
     nbCoups = 0
     numjoueur = int(input("Numero de joueurs ?\n")) #correspond a notre ia
