@@ -7,7 +7,9 @@ Created on Tue May  4 16:31:49 2021
 import time
 import copy
 
-DEBUG = True
+tictac= []
+
+DEBUG = False
 
 Prof= -1
 ProfJ1 = 2
@@ -130,7 +132,7 @@ class Morpion():
         if bloqueD:
             score += 65-self.ComptPions(self.numJoueur)
         if self.isDuo(x, y):
-            score += 30 -self.ComptPions(self.numJoueur)
+            score += 80 -self.ComptPions(self.numJoueur)
         score += self.VoisinProche(x, y)*1.2   
         score += self.bloqueDanger(x, y)          
         #print(f'score:{score} pour la pose : {x},{y}')
@@ -344,7 +346,7 @@ class Morpion():
         valeur=self.TestRight(x, y+1, charaEnnemi)
         if valeur == 3:#-XXX danger + 20
             danger+=500
-        elif y+valeur+1<=11:
+        elif y+valeur+1<=self.N-1:
             if  valeur == 2 and self.plateau[x][y+valeur+1]!=charaAllie: #-XX. danger + 10
                 danger+=100
             elif valeur == 2 and self.plateau[x][y+valeur+1]==charaAllie: #-XXO donc bloqué danger + 0 ne sera pas mis après
@@ -358,10 +360,11 @@ class Morpion():
         valeur=self.TestLeft(x, y-1, charaEnnemi)
         if valeur == 3:#XXX- valeur + 20
             danger+=500 
-        if  valeur == 2 and self.plateau[x][y-(valeur+1)]!=charaAllie: #.XX- danger + 10
-            danger+=100
-        elif self.plateau[x][y-(valeur+1)]!=charaAllie:
-            danger+=valeur*0.5
+        elif y-(valeur+1)>=0:
+            if  valeur == 2 and self.plateau[x][y-(valeur+1)]!=charaAllie: #.XX- danger + 10
+                danger+=100
+            elif self.plateau[x][y-(valeur+1)]!=charaAllie:
+                danger+=valeur*0.5
         return danger
     
     def testHaut(self,x,y,charaEnnemi,charaAllie):
@@ -369,10 +372,13 @@ class Morpion():
         valeur=self.TestUpper(x-1, y, charaEnnemi)
         if valeur == 3:#-XXX danger + 20
             danger+=500
-        elif  valeur == 2 and self.plateau[x-(valeur+1)][y]!=charaAllie: #-XX. danger + 10
-            danger+=100
-        elif self.plateau[x-(valeur+1)][y]!=charaAllie: #-X. danger + 1
-            danger+=valeur*0.5
+        elif x-(valeur+1) >= 0:
+            if  valeur == 2 and self.plateau[x-(valeur+1)][y]!=charaAllie: #-XX. danger + 10
+                danger+=100
+            elif self.plateau[x-(valeur+1)][y]!=charaAllie: #-X. danger + 1
+                danger+=valeur*0.5
+        if DEBUG:
+            print(f"danger:{danger} | valeur: {valeur} | x:{x} | y:{y} | charaE: {charaEnnemi}| charaA: {charaAllie}")
         return danger
         
     def testBas(self,x,y,charaEnnemi,charaAllie):
@@ -380,10 +386,11 @@ class Morpion():
         valeur=self.TestBottom(x+1, y, charaEnnemi)
         if valeur == 3:#-XXX danger + 20
             danger+=500
-        elif  valeur == 2 and self.plateau[x+valeur+1][y]!=charaAllie: #-XX. danger + 10
-            danger+=100
-        elif self.plateau[x+valeur+1][y]!=charaAllie: #-X. danger + 1
-            danger+=valeur*0.5
+        elif x+valeur+1 <= self.N-1:
+            if  valeur == 2 and self.plateau[x+valeur+1][y]!=charaAllie: #-XX. danger + 10
+                danger+=100
+            elif self.plateau[x+valeur+1][y]!=charaAllie: #-X. danger + 1
+                danger+=valeur*0.5
         return danger
         
     def testHautGauche(self,x,y,charaEnnemi,charaAllie):
@@ -391,10 +398,11 @@ class Morpion():
         valeur=self.TestUpperLeft(x-1, y-1, charaEnnemi)
         if valeur == 3:#-XXX danger + 20
             danger+=500
-        elif  valeur == 2 and self.plateau[x-(valeur+1)][y-(valeur+1)]!=charaAllie: #-XX. danger + 10
-            danger+=100
-        elif self.plateau[x-(valeur+1)][y-(valeur+1)]!=charaAllie: #-X. danger + 1
-            danger+=valeur*0.5
+        elif x-(valeur+1) >= 0 and y-(valeur+1) >= 0:
+            if  valeur == 2 and self.plateau[x-(valeur+1)][y-(valeur+1)]!=charaAllie: #-XX. danger + 10
+                danger+=100
+            elif self.plateau[x-(valeur+1)][y-(valeur+1)]!=charaAllie: #-X. danger + 1
+                danger+=valeur*0.5
         return danger
     
     def testHautDroite(self,x,y,charaEnnemi,charaAllie):
@@ -402,10 +410,11 @@ class Morpion():
         valeur=self.TestUpperRight(x-1, y+1, charaEnnemi)
         if valeur == 3:#-XXX danger + 20
             danger+=500
-        elif  valeur == 2 and self.plateau[x-(valeur+1)][y+valeur+1]!=charaAllie: #-XX. danger + 10
-            danger+=100
-        elif self.plateau[x-(valeur+1)][y+valeur+1]!=charaAllie: #-X. danger + 1
-            danger+=valeur*0.5
+        elif x-(valeur+1)>= 0 and y+valeur+1 <= self.N-1:
+            if  valeur == 2 and self.plateau[x-(valeur+1)][y+valeur+1]!=charaAllie: #-XX. danger + 10
+                danger+=100
+            elif self.plateau[x-(valeur+1)][y+valeur+1]!=charaAllie: #-X. danger + 1
+                danger+=valeur*0.5
         return danger
         
     def testBasDroite(self,x,y,charaEnnemi,charaAllie):
@@ -413,10 +422,11 @@ class Morpion():
         valeur=self.TestBottomRight(x+1, y+1, charaEnnemi)
         if valeur == 3:#-XXX danger + 20
             danger+=500
-        elif  valeur == 2 and self.plateau[x+valeur+1][y+valeur+1]!=charaAllie: #-XX. danger + 10
-            danger+=100
-        elif self.plateau[x+valeur+1][y+valeur+1]!=charaAllie: #-X. danger + 1
-            danger+=valeur
+        elif x+valeur+1 <= self.N-1 and y +valeur+1 <= self.N-1:
+            if  valeur == 2 and self.plateau[x+valeur+1][y+valeur+1]!=charaAllie: #-XX. danger + 10
+                danger+=100
+            elif self.plateau[x+valeur+1][y+valeur+1]!=charaAllie: #-X. danger + 1
+                danger+=valeur
         return danger
             
     def testBasGauche(self,x,y,charaEnnemi,charaAllie):
@@ -424,10 +434,11 @@ class Morpion():
         valeur=self.TestBottomLeft(x+1, y-1, charaEnnemi)
         if valeur == 3:#-XXX danger + 20
             danger+=500
-        elif  valeur == 2 and self.plateau[x+valeur+1][y-(valeur+1)]!=charaAllie: #-XX. danger + 10
-            danger+=100
-        elif self.plateau[x+valeur+1][y-(valeur+1)]!=charaAllie: #-X. danger + 1
-            danger+=valeur*0.5
+        elif x+valeur+1 <= self.N-1 and y-(valeur+1) >= 0:
+            if  valeur == 2 and self.plateau[x+valeur+1][y-(valeur+1)]!=charaAllie: #-XX. danger + 10
+                danger+=100
+            elif self.plateau[x+valeur+1][y-(valeur+1)]!=charaAllie: #-X. danger + 1
+                danger+=valeur*0.5
         return danger
         
     def testCotes(self,x,y,charaEnnemi,charaAllie):
@@ -436,16 +447,17 @@ class Morpion():
         valeurDroite=self.TestRight(x, y+1, charaEnnemi)
         if valeurGauche+valeurDroite==3: #XXX- ou XX-X ou X-XX ou -XXX
             danger+=500
-        elif (valeurGauche==2) and (valeurDroite==0) and (self.plateau[x][y-(valeurGauche+1)]!=charaAllie): #.XX-?
-            danger+=100
-        elif (valeurGauche==0) and (valeurDroite==2) and (self.plateau[x][y+valeurDroite+1]!=charaAllie):   #?-XX.
-            danger+=100
-        elif (valeurGauche==1) and (valeurDroite==1) and (self.plateau[x][y+valeurDroite+1]!=charaAllie) and (self.plateau[x][y-(valeurGauche+1)]!=charaAllie): # .X-X. 
-            danger+=150
-        elif valeurGauche+valeurDroite==2 and ((self.plateau[x][y-3]!=charaAllie or self.plateau[x][y+1]!=charaAllie) and (self.plateau[x][y-2]!=charaAllie or self.plateau[x][y+2]!=charaAllie) and (self.plateau[x][y-1]!=charaAllie or self.plateau[x][y+3]!=charaAllie)): # OXX-. ou OX-X. ou .X-XO ou .-XXO
-        #plus propre à vérifier si ça marche:
-        #elif valeurGauche+ValeurDroite==2 and ((self.plateau[x][y-(valeurGauche+1)]!=charaAllie or self.plateau[x][y+ValeurDroite+1]!=charaAllie) # OXX-. ou OX-X. ou .X-XO ou .-XXO
-            danger+=valeurGauche+valeurDroite
+        elif y-(valeurGauche+1) >= 0:
+            if (valeurGauche==2) and (valeurDroite==0) and (self.plateau[x][y-(valeurGauche+1)]!=charaAllie): #.XX-?
+                danger+=100
+        elif y+valeurDroite+1 <= self.N-1:
+            if (valeurGauche==0) and (valeurDroite==2) and (self.plateau[x][y+valeurDroite+1]!=charaAllie):   #?-XX.
+                danger+=100
+        elif y+(valeurDroite+1) <= self.N-1 and y-(valeurGauche+1) >=0:
+            if (valeurGauche==1) and (valeurDroite==1) and (self.plateau[x][y+valeurDroite+1]!=charaAllie) and (self.plateau[x][y-(valeurGauche+1)]!=charaAllie): # .X-X. 
+                danger+=150
+            elif (valeurGauche+valeurDroite==2) and ((self.plateau[x][y-(valeurGauche+1)]!=charaAllie or self.plateau[x][y+valeurDroite+1]!=charaAllie)): # OXX-. ou OX-X. ou .X-XO ou .-XXO
+                danger+=valeurGauche+valeurDroite
         else: # .X-. ou .-. ou .-X.
             danger+=(valeurGauche+valeurDroite)*0.5
         return danger
@@ -456,36 +468,38 @@ class Morpion():
         valeurBasse=self.TestBottom(x+1, y, charaEnnemi)
         if valeurHaute+valeurBasse==3: #XXX- ou XX-X ou X-XX ou -XXX
             danger+=500
-        elif (valeurHaute==2) and (valeurBasse==0) and (self.plateau[x][y-(valeurHaute+1)]!=charaAllie): #.XX-?
-            danger+=100
-        elif (valeurHaute==0) and (valeurBasse==2) and (self.plateau[x][y+valeurBasse+1]!=charaAllie):   #?-XX.
-            danger+=100
-        elif (valeurHaute==1) and (valeurBasse==1) and (self.plateau[x][y+valeurBasse+1]!=charaAllie) and (self.plateau[x][y-(valeurHaute+1)]!=charaAllie): # .X-X. 
-            danger+=150
-        elif valeurHaute+valeurBasse==2 and ((self.plateau[x][y-3]!=charaAllie or self.plateau[x][y+1]!=charaAllie) and (self.plateau[x][y-2]!=charaAllie or self.plateau[x][y+2]!=charaAllie) and (self.plateau[x][y-1]!=charaAllie or self.plateau[x][y+3]!=charaAllie)): # OXX-. ou OX-X. ou .X-XO ou .-XXO
-        #plus propre à vérifier si ça marche:
-        #elif valeurHaute+valeurBasse==2 and ((self.plateau[x][y-(valeurHaute+1)]!=charaAllie or self.plateau[x][y+valeurBasse+1]!=charaAllie) # OXX-. ou OX-X. ou .X-XO ou .-XXO
-            danger+=valeurHaute+valeurBasse
+        elif x-(valeurHaute+1) >= 0:
+            if (valeurHaute==2) and (valeurBasse==0) and (self.plateau[x-(valeurHaute+1)][y]!=charaAllie): #.XX-?
+                danger+=100
+        elif x+valeurBasse+1 <= self.N-1:
+            if (valeurHaute==0) and (valeurBasse==2) and (self.plateau[x+valeurBasse+1][y]!=charaAllie):   #?-XX.
+                danger+=100
+        elif x+valeurBasse+1 <= self.N-1 and x-(valeurHaute+1) >=0:
+            if (valeurHaute==1) and (valeurBasse==1) and (self.plateau[x+valeurBasse+1][y]!=charaAllie) and (self.plateau[x-(valeurHaute+1)][y]!=charaAllie): # .X-X. 
+                danger+=150
+            elif valeurHaute+valeurBasse==2 and ((self.plateau[x-(valeurHaute+1)][y]!=charaAllie or self.plateau[x+valeurBasse+1][y]!=charaAllie)): # OXX-. ou OX-X. ou .X-XO ou .-XXO
+                danger+=valeurHaute+valeurBasse
         else: # .X-. ou .-. ou .-X.
             danger+=(valeurHaute+valeurBasse)*0.5
         return danger
     
-    def testDiagonale1(self,x,y,charaEnnemi,charaAllie): #\
+    def testDiagonale1(self,x,y,charaEnnemi,charaAllie):
         danger = 0
         valeurHauteGauche=self.TestUpperLeft(x-1, y-1, charaEnnemi)
         valeurBasseDroite=self.TestBottomRight(x+1, y+1, charaEnnemi)
         if valeurHauteGauche+valeurBasseDroite==3: #XXX- ou XX-X ou X-XX ou -XXX
             danger+=500
-        elif (valeurHauteGauche==2) and (valeurBasseDroite==0) and (self.plateau[x-(valeurHauteGauche+1)][y-(valeurHauteGauche+1)]!=charaAllie): #.XX-?
-            danger+=100
-        elif (valeurHauteGauche==0) and (valeurBasseDroite==2) and (self.plateau[x+(valeurBasseDroite+1)][y+valeurBasseDroite+1]!=charaAllie):   #?-XX.
-            danger+=100
-        elif (valeurHauteGauche==1) and (valeurBasseDroite==1) and (self.plateau[x+valeurBasseDroite+1][y+valeurBasseDroite+1]!=charaAllie) and (self.plateau[x-(valeurHauteGauche+1)][y-(valeurHauteGauche+1)]!=charaAllie): # .X-X. 
-            danger+=150
-        elif valeurHauteGauche+valeurBasseDroite==2 and ((self.plateau[x-3][y-3]!=charaAllie or self.plateau[x+1][y+1]!=charaAllie) and (self.plateau[x-2][y-2]!=charaAllie or self.plateau[x+2][y+2]!=charaAllie) and (self.plateau[x-1][y-1]!=charaAllie or self.plateau[x+3][y+3]!=charaAllie)): # OXX-. ou OX-X. ou .X-XO ou .-XXO
-        #plus propre à vérifier si ça marche:
-        #elif valeurHauteGauche+valeurBasseDroite==2 and ((self.plateau[x-(valeurHauteGauche+1)][y-(valeurHauteGauche+1)]!=charaAllie or self.plateau[x+valeurBasseDroite+1][y+valeurBasseDroite+1]!=charaAllie) # OXX-. ou OX-X. ou .X-XO ou .-XXO
-            danger+=valeurHauteGauche+valeurBasseDroite
+        elif x-(valeurHauteGauche+1) >= 0 and  y-(valeurHauteGauche+1)>=0:
+            if (valeurHauteGauche==2) and (valeurBasseDroite==0) and (self.plateau[x-(valeurHauteGauche+1)][y-(valeurHauteGauche+1)]!=charaAllie): #.XX-?
+                danger+=100
+        elif x+(valeurBasseDroite+1) <= self.N-1 and y+valeurBasseDroite+1 <= self.N-1:
+            if (valeurHauteGauche==0) and (valeurBasseDroite==2) and (self.plateau[x+(valeurBasseDroite+1)][y+valeurBasseDroite+1]!=charaAllie):   #?-XX.
+                danger+=100
+        elif x+(valeurBasseDroite+1) <= self.N-1 and y+valeurBasseDroite+1 <= self.N-1 and x-(valeurHauteGauche+1) >= 0 and  y-(valeurHauteGauche+1)>=0:
+            if (valeurHauteGauche==1) and (valeurBasseDroite==1) and (self.plateau[x+valeurBasseDroite+1][y+valeurBasseDroite+1]!=charaAllie) and (self.plateau[x-(valeurHauteGauche+1)][y-(valeurHauteGauche+1)]!=charaAllie): # .X-X. 
+                danger+=150
+            elif valeurHauteGauche+valeurBasseDroite==2 and ((self.plateau[x-(valeurHauteGauche+1)][y-(valeurHauteGauche+1)]!=charaAllie or self.plateau[x+valeurBasseDroite+1][y+valeurBasseDroite+1]!=charaAllie)): # OXX-. ou OX-X. ou .X-XO ou .-XXO
+                danger+=valeurHauteGauche+valeurBasseDroite
         else: # .X-. ou .-. ou .-X.
             danger+=(valeurHauteGauche+valeurBasseDroite)*0.5
         return danger
@@ -496,23 +510,24 @@ class Morpion():
         valeurHauteDroite=self.TestBottom(x-1, y+1, charaEnnemi)
         if valeurBasseGauche+valeurHauteDroite==3: #XXX- ou XX-X ou X-XX ou -XXX
             danger+=500
-        elif (valeurBasseGauche==2) and (valeurHauteDroite==0) and (self.plateau[x-(valeurBasseGauche+1)][y-(valeurBasseGauche+1)]!=charaAllie): #.XX-?
-            danger+=100
-        elif (valeurBasseGauche==0) and (valeurHauteDroite==2) and (self.plateau[x+(valeurHauteDroite+1)][y+valeurHauteDroite+1]!=charaAllie):   #?-XX.
-            danger+=100
-        elif (valeurBasseGauche==1) and (valeurHauteDroite==1) and (self.plateau[x+valeurHauteDroite+1][y+valeurHauteDroite+1]!=charaAllie) and (self.plateau[x-(valeurBasseGauche+1)][y-(valeurBasseGauche+1)]!=charaAllie): # .X-X. 
-            danger+=150
-        elif valeurBasseGauche+valeurHauteDroite==2 and ((self.plateau[x+3][y-3]!=charaAllie or self.plateau[x-1][y+1]!=charaAllie) and (self.plateau[x+2][y-2]!=charaAllie or self.plateau[x-2][y+2]!=charaAllie) and (self.plateau[x+1][y-1]!=charaAllie or self.plateau[x-3][y+3]!=charaAllie)): # OXX-. ou OX-X. ou .X-XO ou .-XXO
-        #plus propre à vérifier si ça marche:
-        #elif valeurBasseGauche+valeurHauteDroite==2 and ((self.plateau[x-(valeurBasseGauche+1)][y-(valeurBasseGauche+1)]!=charaAllie or self.plateau[x+valeurHauteDroite+1][y+valeurHauteDroite+1]!=charaAllie) # OXX-. ou OX-X. ou .X-XO ou .-XXO
-            danger+=valeurBasseGauche+valeurHauteDroite
+        elif x+(valeurBasseGauche+1) <= self.N-1 and y-(valeurBasseGauche+1) >= 0:
+            if (valeurBasseGauche==2) and (valeurHauteDroite==0) and (self.plateau[x+(valeurBasseGauche+1)][y-(valeurBasseGauche+1)]!=charaAllie): #.XX-?
+                danger+=100
+        elif x-(valeurHauteDroite+1) >= 0 and y+valeurHauteDroite+1 <= self.N-1:
+            if (valeurBasseGauche==0) and (valeurHauteDroite==2) and (self.plateau[x-(valeurHauteDroite+1)][y+valeurHauteDroite+1]!=charaAllie):   #?-XX.
+                danger+=100
+        elif x+valeurHauteDroite+1 <= self.N-1 and y+valeurHauteDroite+1 <= self.N-1 and x-(valeurBasseGauche+1) >= 0 and y-(valeurBasseGauche+1) >= 0:
+            if (valeurBasseGauche==1) and (valeurHauteDroite==1) and (self.plateau[x-(valeurHauteDroite+1)][y+valeurHauteDroite+1]!=charaAllie) and (self.plateau[x+(valeurBasseGauche+1)][y-(valeurBasseGauche+1)]!=charaAllie): # .X-X. 
+                danger+=150
+            elif valeurBasseGauche+valeurHauteDroite==2 and ((self.plateau[x+(valeurBasseGauche+1)][y-(valeurBasseGauche+1)]!=charaAllie or self.plateau[x-(valeurHauteDroite+1)][y+valeurHauteDroite+1]!=charaAllie)): # OXX-. ou OX-X. ou .X-XO ou .-XXO
+                danger+=valeurBasseGauche+valeurHauteDroite
         else: # .X-. ou .-. ou .-X.
             danger+=(valeurBasseGauche+valeurHauteDroite)*0.5
         return danger
         
     def bloqueDanger(self,x,y):
         danger = 0
-        charaEnnemi = 'X' if self.numJoueur == 2 else 'O',
+        charaEnnemi = 'X' if self.numJoueur == 2 else 'O'
         charaAllie = 'O' if self.numJoueur == 2 else 'X'
         # Celui a tester est:
         # en haut
@@ -591,7 +606,7 @@ class Morpion():
                 # On teste vers le haut à gauche
                 danger+=self.testHautGauche(x,y,charaEnnemi,charaAllie)
              
-        # à un endroit quelconque
+        # à un x quelconque
         else:
             # à gauche
             if y==0:
@@ -643,30 +658,31 @@ def decoTimer(fonction):
         print(f'Début de la recherche : {tic}')
         val = fonction(*param, **param2)
         tac = time.perf_counter()
+        tictac.append(tac - tic)
         print(f"Temps d'execution de {tac - tic:0.6f} sec")
         return val
     return inner
 
 def getSubTab(morpion):
-    imin=11
+    imin=morpion.N-1
     imax=0
-    jmin=11
+    jmin=morpion.N-1
     jmax=0
     for point in morpion.listeCoupJoue:
         #print("test getSubTAb")
         if imin>=point[0]-1:
             imin=max(0,point[0]-1)
         if imax<=point[0]+1:
-            imax=min(11,point[0]+1)
+            imax=min(morpion.N-1,point[0]+1)
         if jmin>=point[1]-1:
             jmin=max(0,point[1]-1)
         if jmax<=point[1]+1:
-            jmax=min(11,point[1]+1)
+            jmax=min(morpion.N-1,point[1]+1)
         while jmax-jmin>imax-imin:
             if imin>0:
                 imin-=1
             if jmax-jmin>imax-imin:
-                if imax<11:
+                if imax<morpion.N-1:
                     imax+=1
                 else:
                     imin-=1
@@ -674,7 +690,7 @@ def getSubTab(morpion):
             if jmin>0:
                 jmin-=1
             if imax-imin>jmax-jmin:
-                if jmax<11:
+                if jmax<morpion.N-1:
                     jmax+=1
                 else:
                     jmin-=1
@@ -762,46 +778,71 @@ def RepresentsInt(s):
     except ValueError:
         return False
     
+def askPlay():
+    c = input("Voulez vous jouer ? (y/n)\n")
+    while c != 'y' and c!= 'n':
+        print("Erreur:")
+        c = input("Voulez vous jouer ? (y/n)\n")
+    return c
 def Partie():
-    if DEBUG:
-        print("******************* Mode DEBUG *******************")
-    global Prof
-    nbCoups = 0
-    numjoueur = int(input("Numero de joueurs ?\n")) #correspond a notre ia
-    
-    Prof = ProfJ1 if numjoueur == 1 else ProfJ2
-    m = Morpion(numjoueur)
-    while(m.win() == 0):
-        m.Afficher()
-        if(m.etat == m.numJoueur):
-            if(nbCoups == 0):
-                print("On joue au centre (6,6)");
-                m.Result((5,5))
+    if not DEBUG:
+        c = askPlay()
+    else:
+        c = 'y'
+    while c == 'y':
+        if DEBUG:
+            print("******************* Mode DEBUG *******************")
+        global Prof
+        nbCoups = 0
+        numjoueur = int(input("Numero de joueurs ?\n")) #correspond a notre ia
+        global tictac
+        tictac = []
+
+        Prof = ProfJ1 if numjoueur == 1 else ProfJ2
+        m = Morpion(numjoueur)
+        while(m.win() == 0):
+            m.Afficher()
+            if(m.etat == m.numJoueur):
+                if(nbCoups == 0):
+                    print("On joue au centre (6,6)");
+                    m.Result((5,5))
+                else:
+                    print("************************\n*    Au tour de l'ia   *\n************************")
+                    val = MinMax_Decision(m)
+                    print(f'nb calcul :{count}')
+                    print(f"Valeur a jouer : {val[0]+1},{val[1]+1}")
+                    m.Result(val)
+                    print(f"{m.win()}")
             else:
-                print("************************\n*    Au tour de l'ia   *\n************************")
-                val = MinMax_Decision(m)
-                print(f'nb calcul :{count}')
-                print(f"Valeur a jouer : {val[0]+1},{val[1]+1}")
-                m.Result(val)
-                print(f"{m.win()}")
-        else:
-            i = input("Valeur du i adverse: \n")
-            j = input("Valeur du j adverse: \n")
-            while(not(RepresentsInt(i)) or not(RepresentsInt(j))):
-                print("Erreur dans la saisie, veuillez recommencer\n")
                 i = input("Valeur du i adverse: \n")
                 j = input("Valeur du j adverse: \n")
-            i = int(i)
-            j = int(j)
-            m = m.Result((i-1,j-1))
-        nbCoups += 1
-    valWin = m.win()
-    winner = "Null" if valWin == 0 else "J1" if valWin == 1 else "J2"
-    print(f"Fin de partie ! Gagnant : {winner}")
-    m.Afficher()
+                while(not(RepresentsInt(i)) or not(RepresentsInt(j))):
+                    print("Erreur dans la saisie, veuillez recommencer\n")
+                    i = input("Valeur du i adverse: \n")
+                    j = input("Valeur du j adverse: \n")
+                i = int(i)
+                j = int(j)
+                m = m.Result((i-1,j-1))
+            nbCoups += 1
+        valWin = m.win()
+        winner = "Null" if valWin == 0 else "J1" if valWin == 1 else "J2"
+        print(f"Fin de partie ! Gagnant : {winner}")
+        m.Afficher()
+        print(f'Temps total joué : {Watchtime():0.6f} sec')
+        if DEBUG:
+            c = 'n'
+        else:
+            print("********** Fin de partie ! Une autre ? **********")
+            c = askPlay()
                 
     
+def Watchtime():
+    val= 0
+    for i in tictac:
+        val+=i
+    return val
 
 #%% Zone Main
 if __name__ == "__main__":
     Partie()
+    
