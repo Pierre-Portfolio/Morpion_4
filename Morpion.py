@@ -4,17 +4,16 @@ Created on Tue May  4 16:31:49 2021
 
 @author: tompa
 """
-import numpy as np
 import time
-import random
 import copy
 
-DEBUG = False
+DEBUG = True
 
 Prof= -1
 ProfJ1 = 2
-ProfJ2 = 2
+ProfJ2 = 0
 count = 0
+
 class Morpion():
     def __init__(self, numJoueur = 1,plateau=None, etat = None,N = 12, lcj=None):
         self.N = N
@@ -48,70 +47,6 @@ class Morpion():
                 if self.plateau[k][l]=='.':
                     return False
         return True
-    
-    def TestBottom(self,i,j,chara,nbrIt=0):
-        if i>=self.N:
-            return nbrIt
-        if nbrIt==4:
-            return nbrIt
-        if self.plateau[i][j]==chara:
-            return self.TestBottom(i+1,j,chara,nbrIt+1)
-        return nbrIt
-    
-    def TestUpper(self,i,j,chara,nbrIt=0):
-        if i<=0:
-            return nbrIt
-        if nbrIt==4:
-            return nbrIt
-        if self.plateau[i][j]==chara:
-            return self.TestUpper(i-1,j,chara,nbrIt+1)
-        return nbrIt
-        
-    def TestRight(self,i,j,chara,nbrIt=0):
-        if j < self.N and nbrIt < 4 and self.plateau[i][j] == chara:
-            return self.TestRight(i,j+1,chara,nbrIt+1)
-        return nbrIt
-    
-    def TestLeft(self,i,j,chara,nbrIt=0):
-        if j >= 0 and nbrIt < 4 and self.plateau[i][j]==chara:
-            return self.TestLeft(i,j-1,chara,nbrIt+1)
-        return nbrIt
-    
-    def TestBottomRight(self,i,j,chara,nbrIt=0):
-        if (i>=self.N) or (j>=self.N):
-            return nbrIt
-        if nbrIt==4:
-            return nbrIt
-        if self.plateau[i][j]==chara:
-            return self.TestBottomRight(i+1,j+1,chara,nbrIt+1)
-        return nbrIt
-    
-    def TestBottomLeft(self,i,j,chara,nbrIt=0):
-        if (i>=self.N) or (j<0):
-            return nbrIt
-        if nbrIt==4:
-            return nbrIt
-        if self.plateau[i][j]==chara:
-            return self.TestBottomLeft(i+1,j-1,chara,nbrIt+1)
-        return nbrIt
-    
-    def TestUpperRight(self,i,j,chara,nbrIt=0):
-        if (i<0) or (j>=self.N):
-            return nbrIt
-        if nbrIt==4:
-            return nbrIt
-        if self.plateau[i][j]==chara:
-            return self.TestUpperRight(i-1,j+1,chara,nbrIt+1)
-        return nbrIt
-    
-    def TestUpperLeft(self,i,j,chara,nbrIt=0):
-        if (i<0) or (j<0):
-            return nbrIt
-        if nbrIt==4:
-            return nbrIt
-        if self.plateau[i][j]==chara:
-            return self.TestUpperLeft(i-1,j-1,chara,nbrIt+1)
-        return nbrIt
 
     def win(self):                    
         res ='.'
@@ -183,24 +118,23 @@ class Morpion():
         y = a[1]
         bloqueT, nbT = self.bloqueTrio(x, y)
         bloqueD, nbD = self.bloqueDuo(x, y)
-        score = nbD + (nbT*2)
+        score = (nbD*1.5) + (nbT*2.5)
         if bloqueT:
-            score += 60 - self.ComptPions(self.numJoueur)
+            score += 100 - self.ComptPions(self.numJoueur)
         if self.isTrio(x, y):
-            score += 40 - self.ComptPions(self.numJoueur)
+            score += 95 - self.ComptPions(self.numJoueur)
             if bloqueT: #Si isTrio + bloque score * 10
                 score= score * 10
             elif bloqueD:
                 score= score * 5
         if bloqueD:
-            score += 20 if self.numJoueur == 2 else 10
-            score -= self.ComptPions(self.numJoueur)
+            score += 65-self.ComptPions(self.numJoueur)
         if self.isDuo(x, y):
-            score += 20 if self.numJoueur == 1 else 10
-            score -= self.ComptPions(self.numJoueur)    
-        score += self.VoisinProche(x, y)               
+            score += 30 -self.ComptPions(self.numJoueur)
+        score += self.VoisinProche(x, y)*1.2   
+        score += self.bloqueDanger(x, y)          
         #print(f'score:{score} pour la pose : {x},{y}')
-        return score - len(self.listeCoupJoue)
+        return score - len(self.listeCoupJoue) - self.listeCoupJoue.index(a)
     
     def Utility(self):
         score = 0
@@ -219,6 +153,71 @@ class Morpion():
         return score
         
 #%% Autre fonctions
+
+    def TestBottom(self,i,j,chara,nbrIt=0):
+        if i>=self.N:
+            return nbrIt
+        if nbrIt==4:
+            return nbrIt
+        if self.plateau[i][j]==chara:
+            return self.TestBottom(i+1,j,chara,nbrIt+1)
+        return nbrIt
+    
+    def TestUpper(self,i,j,chara,nbrIt=0):
+        if i<=0:
+            return nbrIt
+        if nbrIt==4:
+            return nbrIt
+        if self.plateau[i][j]==chara:
+            return self.TestUpper(i-1,j,chara,nbrIt+1)
+        return nbrIt
+        
+    def TestRight(self,i,j,chara,nbrIt=0):
+        if j < self.N and nbrIt < 4 and self.plateau[i][j] == chara:
+            return self.TestRight(i,j+1,chara,nbrIt+1)
+        return nbrIt
+    
+    def TestLeft(self,i,j,chara,nbrIt=0):
+        if j >= 0 and nbrIt < 4 and self.plateau[i][j]==chara:
+            return self.TestLeft(i,j-1,chara,nbrIt+1)
+        return nbrIt
+    
+    def TestBottomRight(self,i,j,chara,nbrIt=0):
+        if (i>=self.N) or (j>=self.N):
+            return nbrIt
+        if nbrIt==4:
+            return nbrIt
+        if self.plateau[i][j]==chara:
+            return self.TestBottomRight(i+1,j+1,chara,nbrIt+1)
+        return nbrIt
+    
+    def TestBottomLeft(self,i,j,chara,nbrIt=0):
+        if (i>=self.N) or (j<0):
+            return nbrIt
+        if nbrIt==4:
+            return nbrIt
+        if self.plateau[i][j]==chara:
+            return self.TestBottomLeft(i+1,j-1,chara,nbrIt+1)
+        return nbrIt
+    
+    def TestUpperRight(self,i,j,chara,nbrIt=0):
+        if (i<0) or (j>=self.N):
+            return nbrIt
+        if nbrIt==4:
+            return nbrIt
+        if self.plateau[i][j]==chara:
+            return self.TestUpperRight(i-1,j+1,chara,nbrIt+1)
+        return nbrIt
+    
+    def TestUpperLeft(self,i,j,chara,nbrIt=0):
+        if (i<0) or (j<0):
+            return nbrIt
+        if nbrIt==4:
+            return nbrIt
+        if self.plateau[i][j]==chara:
+            return self.TestUpperLeft(i-1,j-1,chara,nbrIt+1)
+        return nbrIt    
+
     def VoisinProche(self,x,y):
         xmin = 0 if x <= 0 else x-1
         ymin = 0 if y <= 0 else y-1
@@ -339,6 +338,304 @@ class Morpion():
                             b = True
                             res += 1
         return res,b
+    
+    def testDroite(self, x,y,charaEnnemi,charaAllie):
+        danger = 0
+        valeur=self.TestRight(x, y+1, charaEnnemi)
+        if valeur == 3:#-XXX danger + 20
+            danger+=500
+        elif y+valeur+1<=11:
+            if  valeur == 2 and self.plateau[x][y+valeur+1]!=charaAllie: #-XX. danger + 10
+                danger+=100
+            elif valeur == 2 and self.plateau[x][y+valeur+1]==charaAllie: #-XXO donc bloqué danger + 0 ne sera pas mis après
+                danger+=0
+            elif self.plateau[x][y+valeur+1]!=charaAllie: #-X. danger + 1
+                danger+=valeur*0.5
+        return danger
+    
+    def testGauche(self, x,y,charaEnnemi,charaAllie):
+        danger = 0
+        valeur=self.TestLeft(x, y-1, charaEnnemi)
+        if valeur == 3:#XXX- valeur + 20
+            danger+=500 
+        if  valeur == 2 and self.plateau[x][y-(valeur+1)]!=charaAllie: #.XX- danger + 10
+            danger+=100
+        elif self.plateau[x][y-(valeur+1)]!=charaAllie:
+            danger+=valeur*0.5
+        return danger
+    
+    def testHaut(self,x,y,charaEnnemi,charaAllie):
+        danger = 0
+        valeur=self.TestUpper(x-1, y, charaEnnemi)
+        if valeur == 3:#-XXX danger + 20
+            danger+=500
+        elif  valeur == 2 and self.plateau[x-(valeur+1)][y]!=charaAllie: #-XX. danger + 10
+            danger+=100
+        elif self.plateau[x-(valeur+1)][y]!=charaAllie: #-X. danger + 1
+            danger+=valeur*0.5
+        return danger
+        
+    def testBas(self,x,y,charaEnnemi,charaAllie):
+        danger = 0
+        valeur=self.TestBottom(x+1, y, charaEnnemi)
+        if valeur == 3:#-XXX danger + 20
+            danger+=500
+        elif  valeur == 2 and self.plateau[x+valeur+1][y]!=charaAllie: #-XX. danger + 10
+            danger+=100
+        elif self.plateau[x+valeur+1][y]!=charaAllie: #-X. danger + 1
+            danger+=valeur*0.5
+        return danger
+        
+    def testHautGauche(self,x,y,charaEnnemi,charaAllie):
+        danger = 0
+        valeur=self.TestUpperLeft(x-1, y-1, charaEnnemi)
+        if valeur == 3:#-XXX danger + 20
+            danger+=500
+        elif  valeur == 2 and self.plateau[x-(valeur+1)][y-(valeur+1)]!=charaAllie: #-XX. danger + 10
+            danger+=100
+        elif self.plateau[x-(valeur+1)][y-(valeur+1)]!=charaAllie: #-X. danger + 1
+            danger+=valeur*0.5
+        return danger
+    
+    def testHautDroite(self,x,y,charaEnnemi,charaAllie):
+        danger = 0
+        valeur=self.TestUpperRight(x-1, y+1, charaEnnemi)
+        if valeur == 3:#-XXX danger + 20
+            danger+=500
+        elif  valeur == 2 and self.plateau[x-(valeur+1)][y+valeur+1]!=charaAllie: #-XX. danger + 10
+            danger+=100
+        elif self.plateau[x-(valeur+1)][y+valeur+1]!=charaAllie: #-X. danger + 1
+            danger+=valeur*0.5
+        return danger
+        
+    def testBasDroite(self,x,y,charaEnnemi,charaAllie):
+        danger = 0
+        valeur=self.TestBottomRight(x+1, y+1, charaEnnemi)
+        if valeur == 3:#-XXX danger + 20
+            danger+=500
+        elif  valeur == 2 and self.plateau[x+valeur+1][y+valeur+1]!=charaAllie: #-XX. danger + 10
+            danger+=100
+        elif self.plateau[x+valeur+1][y+valeur+1]!=charaAllie: #-X. danger + 1
+            danger+=valeur
+        return danger
+            
+    def testBasGauche(self,x,y,charaEnnemi,charaAllie):
+        danger = 0
+        valeur=self.TestBottomLeft(x+1, y-1, charaEnnemi)
+        if valeur == 3:#-XXX danger + 20
+            danger+=500
+        elif  valeur == 2 and self.plateau[x+valeur+1][y-(valeur+1)]!=charaAllie: #-XX. danger + 10
+            danger+=100
+        elif self.plateau[x+valeur+1][y-(valeur+1)]!=charaAllie: #-X. danger + 1
+            danger+=valeur*0.5
+        return danger
+        
+    def testCotes(self,x,y,charaEnnemi,charaAllie):
+        danger = 0
+        valeurGauche=self.TestLeft(x, y-1, charaEnnemi)
+        valeurDroite=self.TestRight(x, y+1, charaEnnemi)
+        if valeurGauche+valeurDroite==3: #XXX- ou XX-X ou X-XX ou -XXX
+            danger+=500
+        elif (valeurGauche==2) and (valeurDroite==0) and (self.plateau[x][y-(valeurGauche+1)]!=charaAllie): #.XX-?
+            danger+=100
+        elif (valeurGauche==0) and (valeurDroite==2) and (self.plateau[x][y+valeurDroite+1]!=charaAllie):   #?-XX.
+            danger+=100
+        elif (valeurGauche==1) and (valeurDroite==1) and (self.plateau[x][y+valeurDroite+1]!=charaAllie) and (self.plateau[x][y-(valeurGauche+1)]!=charaAllie): # .X-X. 
+            danger+=150
+        elif valeurGauche+valeurDroite==2 and ((self.plateau[x][y-3]!=charaAllie or self.plateau[x][y+1]!=charaAllie) and (self.plateau[x][y-2]!=charaAllie or self.plateau[x][y+2]!=charaAllie) and (self.plateau[x][y-1]!=charaAllie or self.plateau[x][y+3]!=charaAllie)): # OXX-. ou OX-X. ou .X-XO ou .-XXO
+        #plus propre à vérifier si ça marche:
+        #elif valeurGauche+ValeurDroite==2 and ((self.plateau[x][y-(valeurGauche+1)]!=charaAllie or self.plateau[x][y+ValeurDroite+1]!=charaAllie) # OXX-. ou OX-X. ou .X-XO ou .-XXO
+            danger+=valeurGauche+valeurDroite
+        else: # .X-. ou .-. ou .-X.
+            danger+=(valeurGauche+valeurDroite)*0.5
+        return danger
+    
+    def testHautBas(self,x,y,charaEnnemi,charaAllie):
+        danger = 0
+        valeurHaute=self.TestUpper(x-1, y, charaEnnemi)
+        valeurBasse=self.TestBottom(x+1, y, charaEnnemi)
+        if valeurHaute+valeurBasse==3: #XXX- ou XX-X ou X-XX ou -XXX
+            danger+=500
+        elif (valeurHaute==2) and (valeurBasse==0) and (self.plateau[x][y-(valeurHaute+1)]!=charaAllie): #.XX-?
+            danger+=100
+        elif (valeurHaute==0) and (valeurBasse==2) and (self.plateau[x][y+valeurBasse+1]!=charaAllie):   #?-XX.
+            danger+=100
+        elif (valeurHaute==1) and (valeurBasse==1) and (self.plateau[x][y+valeurBasse+1]!=charaAllie) and (self.plateau[x][y-(valeurHaute+1)]!=charaAllie): # .X-X. 
+            danger+=150
+        elif valeurHaute+valeurBasse==2 and ((self.plateau[x][y-3]!=charaAllie or self.plateau[x][y+1]!=charaAllie) and (self.plateau[x][y-2]!=charaAllie or self.plateau[x][y+2]!=charaAllie) and (self.plateau[x][y-1]!=charaAllie or self.plateau[x][y+3]!=charaAllie)): # OXX-. ou OX-X. ou .X-XO ou .-XXO
+        #plus propre à vérifier si ça marche:
+        #elif valeurHaute+valeurBasse==2 and ((self.plateau[x][y-(valeurHaute+1)]!=charaAllie or self.plateau[x][y+valeurBasse+1]!=charaAllie) # OXX-. ou OX-X. ou .X-XO ou .-XXO
+            danger+=valeurHaute+valeurBasse
+        else: # .X-. ou .-. ou .-X.
+            danger+=(valeurHaute+valeurBasse)*0.5
+        return danger
+    
+    def testDiagonale1(self,x,y,charaEnnemi,charaAllie): #\
+        danger = 0
+        valeurHauteGauche=self.TestUpperLeft(x-1, y-1, charaEnnemi)
+        valeurBasseDroite=self.TestBottomRight(x+1, y+1, charaEnnemi)
+        if valeurHauteGauche+valeurBasseDroite==3: #XXX- ou XX-X ou X-XX ou -XXX
+            danger+=500
+        elif (valeurHauteGauche==2) and (valeurBasseDroite==0) and (self.plateau[x-(valeurHauteGauche+1)][y-(valeurHauteGauche+1)]!=charaAllie): #.XX-?
+            danger+=100
+        elif (valeurHauteGauche==0) and (valeurBasseDroite==2) and (self.plateau[x+(valeurBasseDroite+1)][y+valeurBasseDroite+1]!=charaAllie):   #?-XX.
+            danger+=100
+        elif (valeurHauteGauche==1) and (valeurBasseDroite==1) and (self.plateau[x+valeurBasseDroite+1][y+valeurBasseDroite+1]!=charaAllie) and (self.plateau[x-(valeurHauteGauche+1)][y-(valeurHauteGauche+1)]!=charaAllie): # .X-X. 
+            danger+=150
+        elif valeurHauteGauche+valeurBasseDroite==2 and ((self.plateau[x-3][y-3]!=charaAllie or self.plateau[x+1][y+1]!=charaAllie) and (self.plateau[x-2][y-2]!=charaAllie or self.plateau[x+2][y+2]!=charaAllie) and (self.plateau[x-1][y-1]!=charaAllie or self.plateau[x+3][y+3]!=charaAllie)): # OXX-. ou OX-X. ou .X-XO ou .-XXO
+        #plus propre à vérifier si ça marche:
+        #elif valeurHauteGauche+valeurBasseDroite==2 and ((self.plateau[x-(valeurHauteGauche+1)][y-(valeurHauteGauche+1)]!=charaAllie or self.plateau[x+valeurBasseDroite+1][y+valeurBasseDroite+1]!=charaAllie) # OXX-. ou OX-X. ou .X-XO ou .-XXO
+            danger+=valeurHauteGauche+valeurBasseDroite
+        else: # .X-. ou .-. ou .-X.
+            danger+=(valeurHauteGauche+valeurBasseDroite)*0.5
+        return danger
+        
+    def testDiagonale2(self,x,y,charaEnnemi,charaAllie):
+        danger = 0
+        valeurBasseGauche=self.TestUpperLeft(x+1, y-1, charaEnnemi)
+        valeurHauteDroite=self.TestBottom(x-1, y+1, charaEnnemi)
+        if valeurBasseGauche+valeurHauteDroite==3: #XXX- ou XX-X ou X-XX ou -XXX
+            danger+=500
+        elif (valeurBasseGauche==2) and (valeurHauteDroite==0) and (self.plateau[x-(valeurBasseGauche+1)][y-(valeurBasseGauche+1)]!=charaAllie): #.XX-?
+            danger+=100
+        elif (valeurBasseGauche==0) and (valeurHauteDroite==2) and (self.plateau[x+(valeurHauteDroite+1)][y+valeurHauteDroite+1]!=charaAllie):   #?-XX.
+            danger+=100
+        elif (valeurBasseGauche==1) and (valeurHauteDroite==1) and (self.plateau[x+valeurHauteDroite+1][y+valeurHauteDroite+1]!=charaAllie) and (self.plateau[x-(valeurBasseGauche+1)][y-(valeurBasseGauche+1)]!=charaAllie): # .X-X. 
+            danger+=150
+        elif valeurBasseGauche+valeurHauteDroite==2 and ((self.plateau[x+3][y-3]!=charaAllie or self.plateau[x-1][y+1]!=charaAllie) and (self.plateau[x+2][y-2]!=charaAllie or self.plateau[x-2][y+2]!=charaAllie) and (self.plateau[x+1][y-1]!=charaAllie or self.plateau[x-3][y+3]!=charaAllie)): # OXX-. ou OX-X. ou .X-XO ou .-XXO
+        #plus propre à vérifier si ça marche:
+        #elif valeurBasseGauche+valeurHauteDroite==2 and ((self.plateau[x-(valeurBasseGauche+1)][y-(valeurBasseGauche+1)]!=charaAllie or self.plateau[x+valeurHauteDroite+1][y+valeurHauteDroite+1]!=charaAllie) # OXX-. ou OX-X. ou .X-XO ou .-XXO
+            danger+=valeurBasseGauche+valeurHauteDroite
+        else: # .X-. ou .-. ou .-X.
+            danger+=(valeurBasseGauche+valeurHauteDroite)*0.5
+        return danger
+        
+    def bloqueDanger(self,x,y):
+        danger = 0
+        charaEnnemi = 'X' if self.numJoueur == 2 else 'O',
+        charaAllie = 'O' if self.numJoueur == 2 else 'X'
+        # Celui a tester est:
+        # en haut
+        if x==0:
+            # à gauche
+            if y==0:
+                # On teste sur la droite
+                danger+=self.testDroite(x,y,charaEnnemi,charaAllie)
+                    
+                # On teste vers le bas
+                danger+=self.testBas(x,y,charaEnnemi,charaAllie)
+                
+                # On teste vers le bas à droite
+                danger+=self.testBasDroite(x,y,charaEnnemi,charaAllie)
+                    
+            # à droite
+            elif y==self.N-1:
+                # On teste sur la gauche
+                danger+=self.testGauche(x,y,charaEnnemi,charaAllie)
+                    
+                # On teste vers le bas
+                danger+=self.testBas(x,y,charaEnnemi,charaAllie)
+                
+                # On teste vers le bas à gauche
+                danger+=self.testBasGauche(x,y,charaEnnemi,charaAllie)
+            
+            # à un endroit quelconque
+            else:
+                # On teste sur les côtés
+                danger+=self.testCotes(x,y,charaEnnemi,charaAllie)
+                    
+                # On teste vers le bas
+                danger+=self.testBas(x,y,charaEnnemi,charaAllie)
+                    
+                # On teste vers le bas à gauche
+                danger+=self.testBasGauche(x,y,charaEnnemi,charaAllie)
+                
+                # On teste vers le bas à droite
+                danger+=self.testBasDroite(x,y,charaEnnemi,charaAllie)
+        
+        # en bas
+        elif x==self.N-1:
+            # à gauche
+            if y==0:
+                # On teste sur la droite
+                danger+=self.testDroite(x,y,charaEnnemi,charaAllie)
+                    
+                # On teste vers le haut
+                danger+=self.testHaut(x,y,charaEnnemi,charaAllie)
+                    
+                # On teste vers le haut à droite
+                danger+=self.testHautDroite(x,y,charaEnnemi,charaAllie)
+                    
+            # à droite
+            elif y==self.N-1:
+                # On teste sur la gauche
+                danger+=self.testGauche(x,y,charaEnnemi,charaAllie)
+                    
+                # On teste vers le haut
+                danger+=self.testHaut(x,y,charaEnnemi,charaAllie)
+                
+                # On teste vers le haut à gauche
+                danger+=self.testHautGauche(x,y,charaEnnemi,charaAllie)
+            
+            # à un endroit quelconque
+            else:
+                # On teste sur les côtés
+                danger+=self.testCotes(x,y,charaEnnemi,charaAllie)
+                    
+                # On teste vers le haut
+                danger+=self.testHaut(x,y,charaEnnemi,charaAllie)
+                
+                # On teste vers le haut à droite
+                danger+=self.testHautDroite(x,y,charaEnnemi,charaAllie)
+                    
+                # On teste vers le haut à gauche
+                danger+=self.testHautGauche(x,y,charaEnnemi,charaAllie)
+             
+        # à un endroit quelconque
+        else:
+            # à gauche
+            if y==0:
+                # On teste sur la droite
+                danger+=self.testDroite(x,y,charaEnnemi,charaAllie)
+
+                # On teste vers le haut et le bas
+                danger+=self.testHautBas(x,y,charaEnnemi,charaAllie)
+                 
+                # On teste vers le haut à droite
+                danger+=self.testHautDroite(x,y,charaEnnemi,charaAllie)
+                    
+                # On teste vers le bas à droite
+                danger+=self.testBasDroite(x,y,charaEnnemi,charaAllie)
+            
+            # à droite
+            elif y==self.N-1:
+                # On teste sur la gauche
+                danger+=self.testGauche(x,y,charaEnnemi,charaAllie)
+                
+                # On teste vers le haut et le bas
+                danger+=self.testHautBas(x,y,charaEnnemi,charaAllie)
+                
+                # On teste vers le haut à gauche
+                danger+=self.testHautGauche(x,y,charaEnnemi,charaAllie)
+                
+                # On teste vers le bas à gauche
+                danger+=self.testBasGauche(x,y,charaEnnemi,charaAllie)
+                    
+            # à un endroit quelconque
+            else:        
+                # On teste sur les côtés
+                danger+=self.testCotes(x,y,charaEnnemi,charaAllie)
+                    
+                # On teste vers le haut et le bas
+                danger+=self.testHautBas(x,y,charaEnnemi,charaAllie)
+                    
+                # On teste la diagonale \
+                danger+=self.testDiagonale1(x,y,charaEnnemi,charaAllie)
+                
+                # On teste la diagonale /
+                danger+= self.testDiagonale2(x,y,charaEnnemi,charaAllie)
+        
+        return danger
 #%% Algo Minmax
 def decoTimer(fonction):
     def inner(*param, **param2):
@@ -357,14 +654,14 @@ def getSubTab(morpion):
     jmax=0
     for point in morpion.listeCoupJoue:
         #print("test getSubTAb")
-        if imin>=point[0]-2:
-            imin=max(0,point[0]-2)
-        if imax<=point[0]+2:
-            imax=min(11,point[0]+2)
-        if jmin>=point[1]-2:
-            jmin=max(0,point[1]-2)
-        if jmax<=point[1]+2:
-            jmax=min(11,point[1]+2)
+        if imin>=point[0]-1:
+            imin=max(0,point[0]-1)
+        if imax<=point[0]+1:
+            imax=min(11,point[0]+1)
+        if jmin>=point[1]-1:
+            jmin=max(0,point[1]-1)
+        if jmax<=point[1]+1:
+            jmax=min(11,point[1]+1)
         while jmax-jmin>imax-imin:
             if imin>0:
                 imin-=1
@@ -433,7 +730,7 @@ def Min_Value(morpion,a, profondeur = 0, alpha = -1000000, beta=1000000):
         beta = min(score_min,beta)
         if beta <= alpha:
             break
-    return score_min
+    return score_min * ((0.8)**profondeur)
 
 def Max_Value(morpion, a, profondeur = 0, alpha = -1000000, beta = 1000000):
     global count
@@ -453,7 +750,7 @@ def Max_Value(morpion, a, profondeur = 0, alpha = -1000000, beta = 1000000):
         alpha = max(alpha,score_max)
         if beta <= alpha:
             break
-    return score_max
+    return score_max * ((0.8)**profondeur)
 
 #%% Game
 def RepresentsInt(s):
