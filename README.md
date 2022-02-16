@@ -8,10 +8,7 @@
 
 ## Petit résumé
 
-- Le but du jeu est d’aligner une suite de 4 pions sur une grille comptant 12 colonnes et 12 lignes.
-Le vainqueur est le joueur qui réalise le premier un alignement (horizontal, vertical ou diagonal)
-consécutif d’au moins quatre de ses pions. Si, alors que toutes les cases de la grille de jeu sont
-remplies, aucun des deux joueurs n’a réalisé un tel alignement, la partie est déclarée nulle.
+- Le but du jeu consiste à aligner 4 pions sur une grille 12x12. Le vainqueur est le joueur qui réalisera le premier un alignement (horizontal, vertical ou diagonal) sur la grille. Si, alors que toutes les cases de la grille de jeu sont remplies, et qu'aucun des deux joueurs n'a réalisé un tel alignement, la partie est déclarée est nulle.
 
 ## Objectifs
 
