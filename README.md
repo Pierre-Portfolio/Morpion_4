@@ -4,7 +4,7 @@
 
 ---
 
-# Affrontement entre IA pour le jeu de Morpion 4
+# Affrontement entre IA pour le jeu du Morpion 4
 
 ## Petit résumé
 
