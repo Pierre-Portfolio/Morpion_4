@@ -22,7 +22,7 @@ remplies, aucun des deux joueurs n’a réalisé un tel alignement, la partie es
 - Python
 - Spyder
 
-## API
+## UI
 <img src="./Assets/demo.gif" alt="Morpion4" />
 
 ## Auteur
