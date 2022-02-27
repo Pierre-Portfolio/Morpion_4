@@ -12,7 +12,7 @@
 
 ## Objectifs
 
-- Réaliser une IA capable de jouer au morpion 4
+- Réaliser une IA capable de gagner au morpion 4
 
 ## Techno
 
