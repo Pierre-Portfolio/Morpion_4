@@ -24,6 +24,6 @@
 
 ## Auteur
 
-- [@Anthony](https://github.com/Cyd-des-Tenebres)
+- [@Cyd](https://github.com/Cyd-des-Tenebres)
 - [@Tom](https://github.com/Flaye)
 - [@Pierre](https://github.com/Pierre-Portfolio)
